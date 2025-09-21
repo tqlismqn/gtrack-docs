@@ -1,11 +1,9 @@
 name: Docs - Preview
-
 on:
   pull_request:
-    paths:
-      - 'docs/**'
-      - 'mkdocs.yml'
-      - '.github/workflows/docs-preview.yml'
+    branches: [ main ]
+permissions:
+  contents: read
 
 jobs:
   build:
@@ -13,18 +11,30 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
+        with:
+          fetch-depth: 0
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-
-      - name: Install MkDocs
-        if: hashFiles('mkdocs.yml') != ''
+      - name: Install deps
         run: |
           python -m pip install --upgrade pip
-          pip install mkdocs
-
-      - name: Build documentation
-        if: hashFiles('mkdocs.yml') != ''
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          else
+            pip install "mkdocs==1.5.3" \
+                        "mkdocs-material==9.5.18" \
+                        "mkdocs-git-revision-date-localized-plugin==1.2.0" \
+                        "mkdocs-redirects==1.2.1" \
+                        "pymdown-extensions==10.8.1"
+          fi
+          pip show mkdocs mkdocs-material mkdocs-git-revision-date-localized-plugin
+      - name: Diagnostics
+        run: |
+          python - <<'PY'
+          import importlib.util
+          print("plugin_present:", importlib.util.find_spec("mkdocs_git_revision_date_localized") is not None)
+          PY
+      - name: Build (strict)
         run: mkdocs build --strict
