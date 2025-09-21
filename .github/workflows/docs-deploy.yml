@@ -20,7 +20,20 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: pip install -r requirements.txt
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install "mkdocs-git-revision-date-localized-plugin==1.2.0"
+      - name: Diagnostics
+        run: |
+          python - <<'PY'
+          import importlib.util
+          ok = importlib.util.find_spec("mkdocs_git_revision_date_localized") is not None
+          import subprocess, sys
+          print("plugin_present:", ok)
+          subprocess.run(["mkdocs", "--version"], check=True)
+          PY
       - run: mkdocs build --strict
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

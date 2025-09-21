@@ -11,20 +11,28 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Install MkDocs
-        if: hashFiles('mkdocs.yml') != ''
+      - name: Install deps
         run: |
           python -m pip install --upgrade pip
-          pip install mkdocs
+          pip install -r requirements.txt
+          pip install "mkdocs-git-revision-date-localized-plugin==1.2.0"
 
-      - name: Build documentation
-        if: hashFiles('mkdocs.yml') != ''
-        run: mkdocs build --strict
+      - name: Diagnostics
+        run: |
+          python - <<'PY'
+          import importlib.util
+          ok = importlib.util.find_spec("mkdocs_git_revision_date_localized") is not None
+          import subprocess, sys
+          print("plugin_present:", ok)
+          subprocess.run(["mkdocs", "--version"], check=True)
+          PY
+
+      - run: mkdocs build --strict
