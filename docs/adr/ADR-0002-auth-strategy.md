@@ -1,5 +1,3 @@
-# ADR-0002: Auth Strategy (Google/MS)
-Status: proposed  
-Date: 2025-09-21
+# ADR-0002: Auth Strategy
 
-OAuth/OIDC на фронте → валидация id_token и httpOnly-сессия на бэке.
+Черновой конспект будущего ADR про авторизацию через внешних провайдеров.
