@@ -1,0 +1,26 @@
+site_name: GTrack Docs
+site_description: "Единый портал документации GTrack"
+docs_dir: docs
+nav:
+  - Обзор: index.md
+  - Решения (ADR):
+      - adr/ADR-0001-app-shell-first.md
+      - adr/ADR-0002-auth-strategy.md
+  - Спецификации:
+      - API: spec/API.md
+      - UX:
+          - Карточка водителя: spec/UX/DRIVER_CARD.md
+  - Операции:
+      - Переменные окружения: ops/ENV_MATRIX.md
+      - Правила репозиториев: ops/REPO_GOVERNANCE.md
+  - Импорт из код-репозиториев:
+      - Фронтенд (gtrack-app): import/gtrack-app/index.md
+      - Бэкенд (gtrack-backend): import/gtrack-backend/index.md
+plugins:
+  - search
+markdown_extensions:
+  - admonition
+  - toc:
+      permalink: true
+  - footnotes
+  - attr_list
