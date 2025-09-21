@@ -1,0 +1,51 @@
+site_name: G-Track Docs
+site_description: Единый портал документации G-Track
+site_url: https://tqlismqn.github.io/gtrack-docs/
+repo_url: https://github.com/tqlismqn/gtrack-docs
+repo_name: gtrack-docs
+theme:
+  name: material
+  language: ru
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+    - search.highlight
+    - search.suggest
+  palette:
+    - scheme: default
+plugins:
+  - search
+  - git-revision-date-localized:
+      enable_creation_date: true
+  - tags
+  - redirects
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight
+  - pymdownx.emoji
+  - pymdownx.tasklist
+nav:
+  - Обзор: index.md
+  - Решения (ADR):
+    - adr/ADR-0001-app-shell-first.md
+    - adr/ADR-0002-auth-strategy.md
+  - Спецификации:
+    - API: spec/API.md
+    - UX:
+      - Карточка водителя: spec/UX/DRIVER_CARD.md
+  - Операции:
+    - Переменные окружения: ops/ENV_MATRIX.md
+    - Правила репозиториев: ops/REPO_GOVERNANCE.md
+  - Импорт из код-репозиториев:
+    - Фронтенд (gtrack-app): import/gtrack-app/
+    - Бэкенд (gtrack-backend): import/gtrack-backend/
