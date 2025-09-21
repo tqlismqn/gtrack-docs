@@ -14,8 +14,8 @@ nav:
       - Переменные окружения: ops/ENV_MATRIX.md
       - Правила репозиториев: ops/REPO_GOVERNANCE.md
   - Импорт из код-репозиториев:
-      - Фронтенд (gtrack-app): import/gtrack-app/
-      - Бэкенд (gtrack-backend): import/gtrack-backend/
+      - Фронтенд (gtrack-app): import/gtrack-app/index.md
+      - Бэкенд (gtrack-backend): import/gtrack-backend/index.md
 plugins:
   - search
 markdown_extensions:
