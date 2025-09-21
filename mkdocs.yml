@@ -1,5 +1,6 @@
 site_name: GTrack Docs
 site_description: "Единый портал документации GTrack"
+site_url: https://docs.g-track.eu/
 docs_dir: docs
 nav:
   - Обзор: index.md
