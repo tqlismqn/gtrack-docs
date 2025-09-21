@@ -6,7 +6,7 @@
 
 - Базовый URL: `https://api.gtrack.io` (production), `https://staging-api.gtrack.io` (staging).
 - Все ответы возвращаются в формате `application/json`.
-- Аутентификация: httpOnly session cookie, установленная после успешного OAuth входа.
+- Аутентификация: httpOnly session cookie, установленная после успешного OAuth/OpenID входа.
 
 ## Эндпоинты
 
@@ -27,24 +27,24 @@
 
 **Схема ответа**
 
-| Поле           | Тип     | Описание                                  |
-| -------------- | ------- | ----------------------------------------- |
-| `status`       | string  | `ok` при успешной работе, `degraded` иначе |
-| `version`      | string  | Текущая версия сборки                      |
-| `uptimeSeconds`| integer | Количество секунд работы процесса         |
+| Поле            | Тип     | Описание                                   |
+| --------------- | ------- | ------------------------------------------ |
+| `status`        | string  | `ok` при успешной работе, `degraded` иначе |
+| `version`       | string  | Текущая версия сборки                      |
+| `uptimeSeconds` | integer | Количество секунд непрерывной работы      |
 
 ### GET /drivers
 
-Возвращает список водителей с агрегированными данными карточки.
+Возвращает страницу водителей с агрегированными данными карточки.
 
 - **Auth**: требуется активная сессия.
 - **Параметры запроса**
 
-| Параметр  | Тип     | Обязателен | Описание                                      |
-| --------- | ------- | ---------- | --------------------------------------------- |
-| `page`    | integer | Нет        | Номер страницы (по умолчанию `1`)             |
-| `perPage` | integer | Нет        | Размер страницы (по умолчанию `25`, максимум `100`) |
-| `status`  | string  | Нет        | Фильтр по статусу документов (`active`, `expired`, `pending`) |
+| Параметр  | Тип     | Обязателен | Описание                                                             |
+| --------- | ------- | ---------- | -------------------------------------------------------------------- |
+| `page`    | integer | Нет        | Номер страницы (по умолчанию `1`)                                    |
+| `perPage` | integer | Нет        | Размер страницы (по умолчанию `25`, максимум `100`)                  |
+| `status`  | string  | Нет        | Фильтр по статусу документов (`valid`, `expiring`, `expired`)        |
 
 - **Ответ 200**
 
@@ -60,8 +60,8 @@
         "model": "Hyundai Solaris"
       },
       "documents": {
-        "license": "active",
-        "medicalCertificate": "pending",
+        "license": "valid",
+        "medicalCertificate": "expiring",
         "vehicleInsurance": "expired"
       },
       "lastShiftStart": "2025-09-20T06:30:00Z",
@@ -81,24 +81,24 @@
 
 **Схема элемента `data[]`**
 
-| Поле                         | Тип     | Описание                                                     |
-| ---------------------------- | ------- | ------------------------------------------------------------ |
-| `id`                         | string  | Уникальный идентификатор водителя                            |
-| `fullName`                   | string  | ФИО                                                           |
-| `phone`                      | string  | Контактный номер                                             |
-| `vehicle.plateNumber`        | string  | Государственный номер                                        |
-| `vehicle.model`              | string  | Марка и модель                                                |
-| `documents.license`          | string  | Статус водительского удостоверения (`active`, `expired`, `pending`) |
-| `documents.medicalCertificate`| string | Статус медсправки (`active`, `expired`, `pending`)            |
-| `documents.vehicleInsurance` | string  | Статус страховки (`active`, `expired`, `pending`)             |
-| `lastShiftStart`             | string  | ISO8601 timestamp начала последней смены                     |
-| `assignedDispatcher.id`      | string  | Идентификатор диспетчера                                     |
-| `assignedDispatcher.fullName`| string  | Имя диспетчера                                               |
+| Поле                           | Тип     | Описание                                                              |
+| ------------------------------ | ------- | --------------------------------------------------------------------- |
+| `id`                           | string  | Уникальный идентификатор водителя                                     |
+| `fullName`                     | string  | ФИО                                                                   |
+| `phone`                        | string  | Контактный номер                                                      |
+| `vehicle.plateNumber`          | string  | Государственный номер                                                 |
+| `vehicle.model`                | string  | Марка и модель                                                        |
+| `documents.license`            | string  | Статус водительского удостоверения (`valid`, `expiring`, `expired`)   |
+| `documents.medicalCertificate` | string  | Статус медсправки (`valid`, `expiring`, `expired`)                    |
+| `documents.vehicleInsurance`   | string  | Статус страховки (`valid`, `expiring`, `expired`)                     |
+| `lastShiftStart`               | string  | ISO8601 timestamp начала последней смены                              |
+| `assignedDispatcher.id`        | string  | Идентификатор диспетчера                                              |
+| `assignedDispatcher.fullName`  | string  | Имя диспетчера                                                        |
 
 **Схема `meta`**
 
-| Поле    | Тип     | Описание                              |
-| ------- | ------- | ------------------------------------- |
-| `page`  | integer | Текущая страница                      |
-| `perPage` | integer | Размер страницы                        |
-| `total` | integer | Общее количество записей               |
+| Поле      | Тип     | Описание                              |
+| --------- | ------- | ------------------------------------- |
+| `page`    | integer | Текущая страница                      |
+| `perPage` | integer | Размер страницы                       |
+| `total`   | integer | Общее количество записей              |
