@@ -18,6 +18,7 @@ nav:
       - Деплой: ops/DEPLOYMENT.md
       - Домены и DNS: ops/DOMAINS_DNS.md
       - Правила репозиториев: ops/REPO_GOVERNANCE.md
+      - Документация и версионирование: ops/DOCUMENTATION_SOP.md
       - Пакеты обновлений:
           - Обзор: ops/UPDATE_PACKS/index.md
           - Docs Update Pack v1 (2025-09-22): ops/UPDATE_PACKS/2025-09-22-docs-update-pack-v1.md
