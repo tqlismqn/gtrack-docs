@@ -5,3 +5,5 @@
 ## [0.0.1] - 2025-09-21
 ### Added
 - Init docs structure: ADR, UX, API, OPS, импорт и README-навигация.
+
+0.1.1 — 2025-09-22 — Added DOCUMENTATION_SOP and nav link.
