@@ -1,5 +1,3 @@
-### `docs/adr/ADR-0001-app-shell-first.md`
-```markdown
 # ADR-0001: App Shell First
 **Status:** accepted  
 **Date:** 2025-09-21
