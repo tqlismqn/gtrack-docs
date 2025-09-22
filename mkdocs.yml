@@ -14,6 +14,9 @@ nav:
   - Операции:
       - Переменные окружения: ops/ENV_MATRIX.md
       - Правила репозиториев: ops/REPO_GOVERNANCE.md
+      - Архив пакетов обновлений:
+          - Обзор: ops/UPDATE_PACKS/index.md
+          - Docs Update Pack v1: ops/UPDATE_PACKS/2025-09-22-docs-update-pack-v1.md
   - Импорт из код-репозиториев:
       - Фронтенд (gtrack-app): import/gtrack-app/index.md
       - Бэкенд (gtrack-backend): import/gtrack-backend/index.md
