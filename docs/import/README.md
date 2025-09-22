@@ -1,7 +1,8 @@
 # Import Area
 
 Сюда автоматически попадают файлы из `/docs` кодовых репозиториев:
-- `import/gtrack-app` — фронтенд-доки
-- `import/gtrack-backend` — бэкенд-доки
+
+* `import/gtrack-app` — фронтенд-доки
+* `import/gtrack-backend` — бэкенд-доки
 
 > Источник правды для архитектуры/спек — разделы ADR/spec/ops.

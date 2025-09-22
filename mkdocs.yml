@@ -9,17 +9,23 @@ nav:
       - adr/ADR-0002-auth-strategy.md
   - Спецификации:
       - API: spec/API.md
+      - Data Model: spec/DATA_MODEL.md
       - UX:
           - Карточка водителя: spec/UX/DRIVER_CARD.md
   - Операции:
       - Переменные окружения: ops/ENV_MATRIX.md
+      - CI/CD: ops/CI_CD.md
+      - Деплой: ops/DEPLOYMENT.md
+      - Домены и DNS: ops/DOMAINS_DNS.md
       - Правила репозиториев: ops/REPO_GOVERNANCE.md
-      - Архив пакетов обновлений:
+      - Пакеты обновлений:
           - Обзор: ops/UPDATE_PACKS/index.md
-          - Docs Update Pack v1: ops/UPDATE_PACKS/2025-09-22-docs-update-pack-v1.md
+          - Docs Update Pack v1 (2025-09-22): ops/UPDATE_PACKS/2025-09-22-docs-update-pack-v1.md
   - Импорт из код-репозиториев:
+      - Обзор: import/README.md
       - Фронтенд (gtrack-app): import/gtrack-app/index.md
       - Бэкенд (gtrack-backend): import/gtrack-backend/index.md
+  - Playbook Prompts: PLAYBOOK_PROMPTS.md
 plugins:
   - search
   - git-revision-date-localized:
