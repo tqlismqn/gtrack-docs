@@ -1,0 +1,24 @@
+mkdocs==1.5.3
+mkdocs-material==9.5.18
+mkdocs-git-revision-date-localized-plugin==1.2.0
+mkdocs-redirects==1.2.1
+pymdown-extensions==10.8.1
+--no-binary :all:
+--only-binary :none:
+--disable-pip-version-check
+--no-python-version-warning
+--use-pep517
+--retries 3
+--timeout 60
+--progress-bar off
+--require-virtualenv
+--no-cache-dir
+--compile
+--upgrade-strategy only-if-needed
+--extra-index-url https://pypi.org/simple
+--find-links https://pypi.org/simple
+--trusted-host pypi.org
+--trusted-host files.pythonhosted.org
+--trusted-host pypi.python.org
+--trusted-host pypi.io
+--trusted-host pythonhosted.org
