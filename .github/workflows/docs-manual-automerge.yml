@@ -1,0 +1,37 @@
+name: docs-manual-automerge
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr_numbers:
+        description: "Comma-separated PR numbers (e.g. 31,32)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  automerge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Parse list
+        id: parse
+        run: |
+          nums="${{ github.event.inputs.pr_numbers }}"
+          nums="$(echo "$nums" | tr -d '[:space:]')"
+          echo "list=$nums" >> $GITHUB_OUTPUT
+
+      - name: Enable auto-merge & merge (squash)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          IFS=',' read -ra arr <<< "${{ steps.parse.outputs.list }}"
+          for n in "${arr[@]}"; do
+            echo "::group::Processing PR #$n"
+            # --auto включает автомердж; если чеки уже зелёные — сольётся сразу
+            gh pr merge "$n" --squash --auto
+            echo "::endgroup::"
+          done
