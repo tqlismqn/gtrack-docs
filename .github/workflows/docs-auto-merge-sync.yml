@@ -63,7 +63,7 @@ jobs:
 
       - name: Auto-merge when checks pass
         if: steps.gate.outputs.trusted == 'true'
-        uses: peter-evans/auto-merge@v3
+        uses: peter-evans/enable-auto-merge@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           merge-method: squash
