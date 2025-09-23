@@ -1,0 +1,186 @@
+openapi: 3.0.3
+info:
+  title: G-Track API
+  version: "0"
+  description: |
+    Моковая спецификация API G-Track v0.
+servers:
+  - url: http://localhost:3000
+    description: Local mock server
+paths:
+  /health:
+    get:
+      summary: Health check
+      description: Проверка статуса сервиса.
+      tags:
+        - Operations
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              example:
+                status: ok
+  /drivers:
+    get:
+      summary: Список водителей
+      description: Пагинированный список профилей водителей в мок-сервисе.
+      tags:
+        - Drivers
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          description: Размер страницы.
+        - in: query
+          name: offset
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          description: Смещение.
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedDrivers'
+              example:
+                items:
+                  - id: drv_001
+                    full_name: Иван Петров
+                    national_id_rc: 850101/1***
+                    passport_no: PA******89
+                    driver_license_no: DL*****42
+                    iban: CZ65 **** **** 1234 56
+                    swift: KOMBCZ**
+                    tacho_card_no: TA****90
+                    documents:
+                      - doc_type: driver_license
+                        expires_at: 2026-05-10
+                        status: valid
+                total: 1
+                limit: 20
+                offset: 0
+  /drivers/{driverId}:
+    get:
+      summary: Карточка водителя
+      description: Возвращает карточку водителя по идентификатору.
+      tags:
+        - Drivers
+      parameters:
+        - in: path
+          name: driverId
+          required: true
+          schema:
+            type: string
+          description: Идентификатор водителя.
+      responses:
+        '200':
+          description: Найденный водитель
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Driver'
+              example:
+                id: drv_001
+                full_name: Иван Петров
+                national_id_rc: 850101/1234
+                passport_no: PA123456789
+                driver_license_no: DL9876542
+                iban: CZ6508000000001234567899
+                swift: KOMBCZPP
+                tacho_card_no: TA12345690
+                documents:
+                  - doc_type: driver_license
+                    expires_at: 2026-05-10
+                    status: valid
+        '404':
+          description: Водитель не найден
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: ok
+      required:
+        - status
+    Driver:
+      type: object
+      properties:
+        id:
+          type: string
+          example: drv_001
+        full_name:
+          type: string
+          example: Иван Петров
+        national_id_rc:
+          type: string
+          example: 850101/1234
+        passport_no:
+          type: string
+          example: PA123456789
+        driver_license_no:
+          type: string
+          example: DL9876542
+        iban:
+          type: string
+          example: CZ6508000000001234567899
+        swift:
+          type: string
+          example: KOMBCZPP
+        tacho_card_no:
+          type: string
+          example: TA12345690
+        documents:
+          type: array
+          items:
+            $ref: '#/components/schemas/DriverDocument'
+      required:
+        - id
+        - full_name
+    DriverDocument:
+      type: object
+      properties:
+        doc_type:
+          type: string
+          example: driver_license
+        expires_at:
+          type: string
+          format: date
+        status:
+          type: string
+          example: valid
+      required:
+        - doc_type
+        - status
+    PaginatedDrivers:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Driver'
+        total:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 20
+        offset:
+          type: integer
+          example: 0
+      required:
+        - items
+        - total
+        - limit
+        - offset

@@ -2,8 +2,14 @@ site_name: GTrack Docs
 site_description: "Единый портал документации GTrack"
 site_url: https://docs.g-track.eu/
 docs_dir: docs
+strict: true
 nav:
   - Обзор: index.md
+  - API:
+      - v0:
+          - Обзор: api/v0/index.md
+          - Health: api/v0/health.md
+          - Водители: api/v0/drivers.md
   - Решения (ADR):
       - adr/ADR-0001-app-shell-first.md
       - adr/ADR-0002-auth-strategy.md
@@ -13,6 +19,9 @@ nav:
       - Data Model: spec/DATA_MODEL.md
       - UX:
           - Карточка водителя: spec/UX/DRIVER_CARD.md
+  - Specs:
+      - Обзор: spec/index.md
+      - API v0 (ReDoc): spec/redoc/v0.md
   - Операции:
       - Переменные окружения: ops/ENV_MATRIX.md
       - Security Practices: ops/SECURITY_PRACTICES.md
@@ -25,6 +34,7 @@ nav:
           - Обзор: ops/UPDATE_PACKS/index.md
           - Docs Update Pack v1 (2025-09-22): ops/UPDATE_PACKS/2025-09-22-docs-update-pack-v1.md
           - Docs Update Pack v0.3.0 (2025-09-23): ops/UPDATE_PACKS/2025-09-23-docs-update-pack-v0.3.0.md
+          - Docs Update Pack v0.3.2 (2025-09-23): ops/UPDATE_PACKS/docs-v0.3.2.md
   - Импорт из код-репозиториев:
       - Обзор: import/README.md
       - Фронтенд (gtrack-app): import/gtrack-app/index.md
@@ -33,11 +43,7 @@ nav:
   - Changelog: CHANGELOG.md
 plugins:
   - search
-  - git-revision-date-localized:
-      type: timeago
-      fallback_to_build_date: true
-      enable_creation_date: true
-      strict: false
+  - redoc
 markdown_extensions:
   - admonition
   - toc:
