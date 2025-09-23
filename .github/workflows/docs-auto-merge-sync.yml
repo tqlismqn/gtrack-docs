@@ -1,11 +1,9 @@
 name: docs-auto-merge-sync
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened, labeled, ready_for_review, edited, review_requested]
+  pull_request_target:
+    types: [opened, synchronize, reopened, labeled, ready_for_review, edited, review_requested, unlabeled]
     branches: [main]
-    paths:
-      - 'docs/import/**'
 
 permissions:
   contents: write
@@ -18,28 +16,53 @@ concurrency:
 jobs:
   enable-and-merge:
     name: Enable auto-merge for sync PRs
-    if: >
-      startsWith(github.head_ref, 'sync') ||
-      contains(github.head_ref, 'sync') ||
-      contains(join(github.event.pull_request.labels.*.name, ','), 'sync') ||
-      contains(github.event.pull_request.title, 'docs(sync)') ||
-      contains('tqlismqn,dependabot[bot],gtrack-sync-bot', github.event.pull_request.user.login)
     runs-on: ubuntu-latest
     steps:
       - name: Debug context
         run: |
-          echo "head_ref=${{ github.head_ref }}"
+          echo "head_ref=${{ github.event.pull_request.head.ref }}"
           echo "title=${{ github.event.pull_request.title }}"
           echo "author=${{ github.event.pull_request.user.login }}"
           echo "labels=$(echo "${{ toJson(github.event.pull_request.labels) }}" | tr -d '\n')"
 
+      - name: Check changed files are under docs/import/**
+        id: chk
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const {owner, repo} = context.repo;
+            const files = await github.rest.pulls.listFiles({owner, repo, pull_number: pr.number, per_page: 100});
+            const paths = files.data.map(f => f.filename);
+            core.info('Changed files: ' + JSON.stringify(paths));
+            const allInImport = paths.length > 0 && paths.every(p => p.startsWith('docs/import/'));
+            core.setOutput('allInImport', allInImport ? 'true' : 'false');
+
+      - name: Decide if PR is trusted sync
+        id: gate
+        run: |
+          REF="${{ github.event.pull_request.head.ref }}"
+          LABELS="${{ join(github.event.pull_request.labels.*.name, ',') }}"
+          TITLE="${{ github.event.pull_request.title }}"
+          AUTHOR="${{ github.event.pull_request.user.login }}"
+          IN_IMPORT="${{ steps.chk.outputs.allInImport }}"
+          echo "ref=$REF labels=$LABELS title=$TITLE author=$AUTHOR in_import=$IN_IMPORT"
+          if [[ "$IN_IMPORT" != "true" ]]; then echo "Not only docs/import changes"; exit 3; fi
+          if [[ "$REF" == *sync* || "$LABELS" == *sync* || "$TITLE" == *"docs(sync)"* || "$AUTHOR" == "tqlismqn" || "$AUTHOR" == "dependabot[bot]" || "$AUTHOR" == "gtrack-sync-bot" ]]; then
+            echo "trusted=true" >> $GITHUB_OUTPUT
+          else
+            echo "trusted=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Enable auto-merge (squash)
+        if: steps.gate.outputs.trusted == 'true'
         uses: peter-evans/enable-pull-request-automerge@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           merge-method: squash
 
       - name: Auto-merge when checks pass
+        if: steps.gate.outputs.trusted == 'true'
         uses: peter-evans/auto-merge@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
