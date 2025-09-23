@@ -1,0 +1,38 @@
+name: docs-auto-merge-sync
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled]
+    branches: [main]
+    paths:
+      - 'docs/import/**'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: automerge-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  enable-and-merge:
+    name: Enable auto-merge for sync PRs
+    # триггер только для sync-веток/лейблов/заголовков "docs(sync)"
+    if: >
+      startsWith(github.head_ref, 'sync/') ||
+      contains(join(github.event.pull_request.labels.*.name, ','), 'sync') ||
+      contains(github.event.pull_request.title, 'docs(sync)')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enable auto-merge (squash)
+        uses: peter-evans/enable-pull-request-automerge@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          merge-method: squash
+
+      - name: Auto-merge when checks pass
+        uses: peter-evans/auto-merge@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          merge-method: squash
