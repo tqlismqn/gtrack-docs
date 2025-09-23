@@ -18,11 +18,11 @@ concurrency:
 jobs:
   enable-and-merge:
     name: Enable auto-merge for sync PRs
-    # триггер только для sync-веток/лейблов/заголовков "docs(sync)"
     if: >
       startsWith(github.head_ref, 'sync/') ||
       contains(join(github.event.pull_request.labels.*.name, ','), 'sync') ||
-      contains(github.event.pull_request.title, 'docs(sync)')
+      contains(github.event.pull_request.title, 'docs(sync)') ||
+      contains('tqlismqn,dependabot[bot],gtrack-sync-bot', github.event.pull_request.user.login)
     runs-on: ubuntu-latest
     steps:
       - name: Enable auto-merge (squash)
