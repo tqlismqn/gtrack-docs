@@ -22,21 +22,25 @@ jobs:
           echo "author=${{ github.event.pull_request.user.login }}"
           echo "labels=$(echo "${{ join(github.event.pull_request.labels.*.name, ',') }}")"
 
-      - name: Collect changed files
+      - name: Collect changed files (docs-only)
         id: files
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -e
           PR=${{ github.event.pull_request.number }}
-          gh api "repos/${{ github.repository }}/pulls/$PR/files" --paginate --jq '.[].filename' > files.txt
-          echo "Changed files:"; cat files.txt || true
-          BAD=$(grep -v '^docs/import/' files.txt || true)
-          if [ -n "$BAD" ]; then
-            echo "::notice::PR touches outside docs/import/**. Skipping auto-merge."
-            echo "in_import=false" >> $GITHUB_OUTPUT
+          FILES=$(gh api "repos/${{ github.repository }}/pulls/$PR/files" --paginate --jq '.[].filename')
+          echo "Changed files:"; echo "$FILES"
+          ALL_IN_DOCS=true
+          while IFS= read -r f; do
+            [ -z "$f" ] && continue
+            if [[ "$f" != docs/* ]]; then ALL_IN_DOCS=false; fi
+          done <<< "$FILES"
+          if ! $ALL_IN_DOCS; then
+            echo "::notice::PR touches files outside docs/**. Skipping auto-merge."
+            echo "docs_only=false" >> $GITHUB_OUTPUT
           else
-            echo "in_import=true" >> $GITHUB_OUTPUT
+            echo "docs_only=true" >> $GITHUB_OUTPUT
           fi
 
       - name: Decide trust
@@ -53,7 +57,7 @@ jobs:
           echo "trusted=$TRUSTED" >> $GITHUB_OUTPUT
 
       - name: Enable auto-merge (squash)
-        if: steps.files.outputs.in_import == 'true' && steps.trust.outputs.trusted == 'true'
+        if: steps.files.outputs.docs_only == 'true' && steps.trust.outputs.trusted == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
