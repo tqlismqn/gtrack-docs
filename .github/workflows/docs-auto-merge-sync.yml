@@ -67,5 +67,10 @@ jobs:
         run: |
           set -e
           PR=${{ github.event.pull_request.number }}
-          echo "Enabling --auto squash merge for PR #$PR"
-          gh pr merge "$PR" --squash --auto || { echo "Retry in 5s…"; sleep 5; gh pr merge "$PR" --squash --auto || true; }
+          REPO=${{ github.repository }}
+          echo "Enabling --auto squash merge for PR #$PR in $REPO"
+          gh pr merge "$PR" --squash --auto --repo "$REPO" || {
+            echo "Retry in 5s…"
+            sleep 5
+            gh pr merge "$PR" --squash --auto --repo "$REPO" || true
+          }
