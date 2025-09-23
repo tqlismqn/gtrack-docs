@@ -1,0 +1,29 @@
+name: docs-manual-automerge
+on:
+  workflow_dispatch:
+    inputs:
+      pr_numbers:
+        description: "Comma-separated PRs (e.g. 31,32)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  manual-automerge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enable auto-merge (squash) via gh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          IFS=',' read -ra arr <<< "$(echo "${{ github.event.inputs.pr_numbers }}" | tr -d '[:space:]')"
+          for n in "${arr[@]}"; do
+            echo "::group::PR #$n"
+            gh pr merge "$n" --squash --auto
+            echo "::endgroup::"
+          done
