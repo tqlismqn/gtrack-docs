@@ -7,6 +7,7 @@ nav:
   - Решения (ADR):
       - adr/ADR-0001-app-shell-first.md
       - adr/ADR-0002-auth-strategy.md
+      - adr/ADR-0004-pii-protection.md
   - Спецификации:
       - API: spec/API.md
       - Data Model: spec/DATA_MODEL.md
@@ -14,6 +15,7 @@ nav:
           - Карточка водителя: spec/UX/DRIVER_CARD.md
   - Операции:
       - Переменные окружения: ops/ENV_MATRIX.md
+      - Security Practices: ops/SECURITY_PRACTICES.md
       - CI/CD: ops/CI_CD.md
       - Деплой: ops/DEPLOYMENT.md
       - Домены и DNS: ops/DOMAINS_DNS.md
@@ -22,17 +24,20 @@ nav:
       - Пакеты обновлений:
           - Обзор: ops/UPDATE_PACKS/index.md
           - Docs Update Pack v1 (2025-09-22): ops/UPDATE_PACKS/2025-09-22-docs-update-pack-v1.md
+          - Docs Update Pack v0.3.0 (2025-09-23): ops/UPDATE_PACKS/2025-09-23-docs-update-pack-v0.3.0.md
   - Импорт из код-репозиториев:
       - Обзор: import/README.md
       - Фронтенд (gtrack-app): import/gtrack-app/index.md
       - Бэкенд (gtrack-backend): import/gtrack-backend/index.md
   - Playbook Prompts: PLAYBOOK_PROMPTS.md
+  - Changelog: CHANGELOG.md
 plugins:
   - search
   - git-revision-date-localized:
       type: timeago
       fallback_to_build_date: true
       enable_creation_date: true
+      strict: false
 markdown_extensions:
   - admonition
   - toc:
