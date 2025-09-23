@@ -2,7 +2,7 @@ name: docs-auto-merge-sync
 
 on:
   pull_request_target:
-    types: [opened, synchronize, reopened, labeled, ready_for_review, edited, review_requested, unlabeled]
+    types: [opened, synchronize, reopened, labeled, unlabeled, ready_for_review, edited, review_requested]
     branches: [main]
 
 permissions:
@@ -15,55 +15,54 @@ concurrency:
 
 jobs:
   enable-and-merge:
-    name: Enable auto-merge for sync PRs
+    name: Enable auto-merge for sync PRs (CLI)
     runs-on: ubuntu-latest
     steps:
       - name: Debug context
         run: |
-          echo "head_ref=${{ github.event.pull_request.head.ref }}"
+          echo "PR=${{ github.event.pull_request.number }}"
+          echo "ref=${{ github.event.pull_request.head.ref }}"
           echo "title=${{ github.event.pull_request.title }}"
           echo "author=${{ github.event.pull_request.user.login }}"
-          echo "labels=$(echo "${{ toJson(github.event.pull_request.labels) }}" | tr -d '\n')"
+          echo "labels=$(echo "${{ join(github.event.pull_request.labels.*.name, ',') }}")"
 
-      - name: Check changed files are under docs/import/**
-        id: chk
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const pr = context.payload.pull_request;
-            const {owner, repo} = context.repo;
-            const files = await github.rest.pulls.listFiles({owner, repo, pull_number: pr.number, per_page: 100});
-            const paths = files.data.map(f => f.filename);
-            core.info('Changed files: ' + JSON.stringify(paths));
-            const allInImport = paths.length > 0 && paths.every(p => p.startsWith('docs/import/'));
-            core.setOutput('allInImport', allInImport ? 'true' : 'false');
-
-      - name: Decide if PR is trusted sync
-        id: gate
+      - name: Collect changed files
+        id: files
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          REF="${{ github.event.pull_request.head.ref }}"
-          LABELS="${{ join(github.event.pull_request.labels.*.name, ',') }}"
-          TITLE="${{ github.event.pull_request.title }}"
-          AUTHOR="${{ github.event.pull_request.user.login }}"
-          IN_IMPORT="${{ steps.chk.outputs.allInImport }}"
-          echo "ref=$REF labels=$LABELS title=$TITLE author=$AUTHOR in_import=$IN_IMPORT"
-          if [[ "$IN_IMPORT" != "true" ]]; then echo "Not only docs/import changes"; exit 3; fi
-          if [[ "$REF" == *sync* || "$LABELS" == *sync* || "$TITLE" == *"docs(sync)"* || "$AUTHOR" == "tqlismqn" || "$AUTHOR" == "dependabot[bot]" || "$AUTHOR" == "gtrack-sync-bot" ]]; then
-            echo "trusted=true" >> $GITHUB_OUTPUT
+          set -e
+          PR=${{ github.event.pull_request.number }}
+          gh api "repos/${{ github.repository }}/pulls/$PR/files" --paginate --jq '.[].filename' > files.txt
+          echo "Changed files:"; cat files.txt || true
+          BAD=$(grep -v '^docs/import/' files.txt || true)
+          if [ -n "$BAD" ]; then
+            echo "::notice::PR touches outside docs/import/**. Skipping auto-merge."
+            echo "in_import=false" >> $GITHUB_OUTPUT
           else
-            echo "trusted=false" >> $GITHUB_OUTPUT
+            echo "in_import=true" >> $GITHUB_OUTPUT
           fi
 
-      - name: Enable auto-merge (squash)
-        if: steps.gate.outputs.trusted == 'true'
-        uses: peter-evans/enable-pull-request-automerge@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          merge-method: squash
+      - name: Decide trust
+        id: trust
+        run: |
+          REF="${{ github.event.pull_request.head.ref }}"
+          TITLE="${{ github.event.pull_request.title }}"
+          LABELS="${{ join(github.event.pull_request.labels.*.name, ',') }}"
+          AUTHOR="${{ github.event.pull_request.user.login }}"
+          TRUSTED=false
+          if [[ "$REF" == *sync* || "$LABELS" == *sync* || "$TITLE" == *"docs(sync)"* || "$AUTHOR" == "tqlismqn" || "$AUTHOR" == "dependabot[bot]" || "$AUTHOR" == "gtrack-sync-bot" ]]; then
+            TRUSTED=true
+          fi
+          echo "trusted=$TRUSTED" >> $GITHUB_OUTPUT
+          echo "ref=$REF labels=$LABELS title=$TITLE author=$AUTHOR trusted=$TRUSTED"
 
-      - name: Auto-merge when checks pass
-        if: steps.gate.outputs.trusted == 'true'
-        uses: peter-evans/enable-auto-merge@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          merge-method: squash
+      - name: Enable auto-merge (squash)
+        if: steps.files.outputs.in_import == 'true' && steps.trust.outputs.trusted == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          PR=${{ github.event.pull_request.number }}
+          echo "Enabling --auto squash merge for PR #$PR"
+          gh pr merge "$PR" --squash --auto
