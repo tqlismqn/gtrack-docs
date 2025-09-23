@@ -22,7 +22,7 @@ jobs:
           echo "author=${{ github.event.pull_request.user.login }}"
           echo "labels=$(echo "${{ join(github.event.pull_request.labels.*.name, ',') }}")"
 
-      - name: Collect changed files (docs-only)
+      - name: Collect changed files (docs/import allowed)
         id: files
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -31,16 +31,20 @@ jobs:
           PR=${{ github.event.pull_request.number }}
           FILES=$(gh api "repos/${{ github.repository }}/pulls/$PR/files" --paginate --jq '.[].filename')
           echo "Changed files:"; echo "$FILES"
-          ALL_IN_DOCS=true
+          ALL_ALLOWED=true
           while IFS= read -r f; do
             [ -z "$f" ] && continue
-            if [[ "$f" != docs/* ]]; then ALL_IN_DOCS=false; fi
+            case "$f" in
+              import/*) ;;   # корневой импорт из app/backend
+              docs/*)   ;;   # любые правки внутри docs/**
+              *) ALL_ALLOWED=false ;;
+            esac
           done <<< "$FILES"
-          if ! $ALL_IN_DOCS; then
-            echo "::notice::PR touches files outside docs/**. Skipping auto-merge."
-            echo "docs_only=false" >> $GITHUB_OUTPUT
+          if ! $ALL_ALLOWED; then
+            echo "::notice::PR touches files outside import/** or docs/**. Skipping auto-merge."
+            echo "allowed=false" >> $GITHUB_OUTPUT
           else
-            echo "docs_only=true" >> $GITHUB_OUTPUT
+            echo "allowed=true" >> $GITHUB_OUTPUT
           fi
 
       - name: Decide trust
@@ -57,15 +61,11 @@ jobs:
           echo "trusted=$TRUSTED" >> $GITHUB_OUTPUT
 
       - name: Enable auto-merge (squash)
-        if: steps.files.outputs.docs_only == 'true' && steps.trust.outputs.trusted == 'true'
+        if: steps.files.outputs.allowed == 'true' && steps.trust.outputs.trusted == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -e
           PR=${{ github.event.pull_request.number }}
           echo "Enabling --auto squash merge for PR #$PR"
-          gh pr merge "$PR" --squash --auto || {
-            echo "Retry once in 5s…"
-            sleep 5
-            gh pr merge "$PR" --squash --auto || true
-          }
+          gh pr merge "$PR" --squash --auto || { echo "Retry in 5s…"; sleep 5; gh pr merge "$PR" --squash --auto || true; }
