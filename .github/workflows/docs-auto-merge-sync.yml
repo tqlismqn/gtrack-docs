@@ -2,16 +2,12 @@ name: docs-auto-merge-sync
 
 on:
   pull_request_target:
-    types: [opened, synchronize, reopened, labeled, unlabeled, ready_for_review, edited, review_requested]
+    types: [opened, synchronize, reopened, labeled, ready_for_review]
     branches: [main]
 
 permissions:
   contents: write
   pull-requests: write
-
-concurrency:
-  group: automerge-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
 
 jobs:
   enable-and-merge:
@@ -24,7 +20,7 @@ jobs:
           echo "ref=${{ github.event.pull_request.head.ref }}"
           echo "title=${{ github.event.pull_request.title }}"
           echo "author=${{ github.event.pull_request.user.login }}"
-          echo "labels=${{ join(github.event.pull_request.labels.*.name, ',') }}"
+          echo "labels=$(echo "${{ join(github.event.pull_request.labels.*.name, ',') }}")"
 
       - name: Collect changed files
         id: files
@@ -35,11 +31,6 @@ jobs:
           PR=${{ github.event.pull_request.number }}
           gh api "repos/${{ github.repository }}/pulls/$PR/files" --paginate --jq '.[].filename' > files.txt
           echo "Changed files:"; cat files.txt || true
-          if [ ! -s files.txt ]; then
-            echo "::notice::No changed files listed. Skipping auto-merge."
-            echo "in_import=false" >> $GITHUB_OUTPUT
-            exit 0
-          fi
           BAD=$(grep -v '^docs/import/' files.txt || true)
           if [ -n "$BAD" ]; then
             echo "::notice::PR touches outside docs/import/**. Skipping auto-merge."
@@ -60,7 +51,6 @@ jobs:
             TRUSTED=true
           fi
           echo "trusted=$TRUSTED" >> $GITHUB_OUTPUT
-          echo "ref=$REF labels=$LABELS title=$TITLE author=$AUTHOR trusted=$TRUSTED"
 
       - name: Enable auto-merge (squash)
         if: steps.files.outputs.in_import == 'true' && steps.trust.outputs.trusted == 'true'
@@ -70,4 +60,8 @@ jobs:
           set -e
           PR=${{ github.event.pull_request.number }}
           echo "Enabling --auto squash merge for PR #$PR"
-          gh pr merge "$PR" --squash --auto
+          gh pr merge "$PR" --squash --auto || {
+            echo "Retry once in 5s…"
+            sleep 5
+            gh pr merge "$PR" --squash --auto || true
+          }
