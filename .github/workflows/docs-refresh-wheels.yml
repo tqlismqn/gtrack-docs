@@ -7,18 +7,26 @@ on:
         required: false
         default: "3.11"
   schedule:
-    - cron: "0 6 1 * *"
+    - cron: "0 6 1 * *"   # monthly
+
 permissions:
   contents: write
   pull-requests: write
+
 jobs:
   refresh:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with: { fetch-depth: 0, persist-credentials: true }
-      - uses: actions/setup-python@v5
-        with: { python-version: ${{ github.event.inputs.python || '3.11' }} }
+      - name: Checkout (full)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ github.event.inputs.python || '3.11' }}
 
       - name: Upgrade pip tooling
         run: python -m pip install -U pip wheel pip-tools
@@ -69,7 +77,8 @@ jobs:
           python -m mkdocs build --strict
 
       - name: Configure git for Actions
-        env: { GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} }
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config --global user.name  "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
