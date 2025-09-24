@@ -1,20 +1,16 @@
-# Offline PyPI для документации (wheelhouse)
+# Offline PyPI + автонавигация для `import/`
 
 ## Зачем
-CI/окружения иногда блокируют PyPI/CDN. Чтобы сборка доков не падала, зависимости ставим офлайн из `docs/vendor/wheels/`.
+PyPI/CDN могут быть заблокированы. Мы ставим зависимости **офлайн** из `docs/vendor/wheels/`, а раздел `import/` автоматически попадает в меню.
 
 ## Как работает
-- Декларации: `docs/requirements.in`
-- Лок: `docs/requirements.lock.txt` (с hash)
-- Колёса: `docs/vendor/wheels/`
+- `docs/requirements.in` → `docs/requirements.lock.txt` (точные версии с hashes)
+- Колёса: `docs/vendor/wheels/*.whl`
 - В CI: `pip install --no-index --find-links=docs/vendor/wheels -r docs/requirements.lock.txt`
+- Навигацию для `docs/import/**` строит плагин **awesome-pages** (файл `.pages` управляет заголовком/сортировкой).
 
 ## Обновление зависимостей
-Запусти workflow **Docs - Refresh Wheels** (ручной/по расписанию) — он:
-1) пересоберёт lock с hash,
-2) скачает колёса в `docs/vendor/wheels/`,
-3) проверит офлайн-установку и `mkdocs build --strict`,
-4) создаст PR.
+Запускайте **Docs - Refresh Wheels** (ручной/ежемесячный). Он пересобирает lock, скачивает колёса, валидирует офлайн-сборку и открывает PR.
 
 ## Локально
 ```bash
@@ -23,6 +19,6 @@ pip install --no-index --find-links=docs/vendor/wheels -r docs/requirements.lock
 python -m mkdocs serve
 ```
 
-Политика
-- Любое изменение mkdocs.yml/плагинов → запуск Docs - Refresh Wheels.
-- В PR — блок “Docs updated”.
+## Примечание по `import/`
+
+Новые файлы в `docs/import/` автоматически появятся в меню без правки `mkdocs.yml`. Для тонкой настройки структуры используйте `docs/import/.pages`.

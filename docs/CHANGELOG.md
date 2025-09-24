@@ -1,5 +1,11 @@
 # Документация — Changelog
 
+## docs-v2.8.2 — Offline PyPI + Auto-Nav for /import
+- CI: офлайн-установка зависимостей из `docs/vendor/wheels`
+- Новый чек `check-docs` с выводом версий плагинов
+- Автонавигация для `docs/import/**` (awesome-pages + .pages)
+- Добавлена страница `ops/CI/offline-pip.md`, обновлён `mkdocs.yml`
+
 ## docs-v2.8.1 — Offline PyPI for Docs (wheelhouse)
 - CI: офлайн-установка зависимостей из `docs/vendor/wheels`
 - Новый workflow `Docs - Refresh Wheels` (ручной + ежемесячный)
