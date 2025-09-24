@@ -3,6 +3,7 @@ on:
   pull_request:
     branches: [ main ]
     types: [opened, synchronize, reopened, ready_for_review]
+
 permissions:
   contents: read
 
@@ -18,14 +19,11 @@ jobs:
         with:
           python-version: '3.11'
 
-      # Проверяем, что wheelhouse не пустой и lock существует
       - name: Detect wheelhouse/lock
         id: guard
         run: |
           WCOUNT=$(ls -1 docs/vendor/wheels/*.whl 2>/dev/null | wc -l | tr -d ' ')
           LSIZE=$(test -f docs/requirements.lock.txt && wc -c < docs/requirements.lock.txt | tr -d ' ' || echo 0)
-          echo "wheel_count=$WCOUNT" >> $GITHUB_OUTPUT
-          echo "lock_size=$LSIZE" >> $GITHUB_OUTPUT
           if [ "$WCOUNT" -gt 0 ] && [ "$LSIZE" -gt 0 ]; then
             echo "ready=true" >> $GITHUB_OUTPUT
           else
@@ -45,11 +43,8 @@ jobs:
 
       - name: Build docs (strict)
         if: steps.guard.outputs.ready == 'true'
-        run: |
-          python -m mkdocs build --strict
+        run: python -m mkdocs build --strict
 
       - name: Skip build (wheelhouse not ready yet)
         if: steps.guard.outputs.ready != 'true'
-        run: |
-          echo "::notice title=Docs build skipped::Wheelhouse пустой или lock отсутствует. Это ожидаемо для первого PR с офлайн-инфрой. \
-          Merge PR, затем запусти вручную workflow 'Docs - Refresh Wheels' и повтори."
+        run: echo "::notice title=Docs build skipped::Wheelhouse/lock not ready yet. Merge infra PR and run 'Docs - Refresh Wheels'."

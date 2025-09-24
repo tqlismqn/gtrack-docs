@@ -2,26 +2,30 @@ name: Docs - Deploy
 on:
   push:
     branches: [ main ]
+
 permissions:
   contents: read
   pages: write
   id-token: write
+
 concurrency:
   group: "pages"
   cancel-in-progress: false
 
 jobs:
   build:
+    runs-on: ubuntu-latest
     outputs:
       ready: ${{ steps.guard.outputs.ready }}
-    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+
       - name: Detect wheelhouse/lock
         id: guard
         run: |
@@ -56,14 +60,13 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./site
+
   deploy:
-    if: needs.build.outputs.ready == 'true'
     needs: build
-    runs-on: ubuntu-latest
+    if: needs.build.outputs.ready != 'false'
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
     steps:
       - name: Deploy to GitHub Pages
-        id: deployment
         uses: actions/deploy-pages@v4

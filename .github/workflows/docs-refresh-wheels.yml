@@ -6,10 +6,12 @@ on:
         description: "Python version"
         required: false
         default: "3.11"
+  schedule:
+    - cron: "0 6 1 * *"  # ежемесячно в 06:00 UTC первого числа
 
 permissions:
-  contents: write        # важно для коммита
-  pull-requests: write   # важно для открытия PR
+  contents: write
+  pull-requests: write
 
 jobs:
   refresh:
@@ -64,8 +66,7 @@ jobs:
           python -c "import mkdocs; print('mkdocs OK', mkdocs.__version__)"
           python -m mkdocs build --strict
 
-      # ---- Git/PR hardening ----
-      - name: Configure git for Actions
+      - name: Configure git for Actions (safe + token)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -73,12 +74,16 @@ jobs:
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
-          git status
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          branch: "ci/docs-refresh-wheels"
+          branch-suffix: timestamp
+          add-paths: |
+            docs/requirements.lock.txt
+            docs/vendor/wheels/**
           commit-message: |
             docs(ci): refresh wheelhouse & lock for offline PyPI
 
@@ -87,11 +92,6 @@ jobs:
           body: |
             - Updated `docs/requirements.lock.txt` (pip-tools with hashes)
             - Downloaded wheels to `docs/vendor/wheels/`
-            - Verified offline install and `mkdocs build --strict`
+            - Verified offline install and `python -m mkdocs build --strict`
             **Docs updated.**
-          branch: "ci/docs-refresh-wheels"
-          branch-suffix: timestamp
-          add-paths: |
-            docs/requirements.lock.txt
-            docs/vendor/wheels/**
           signoff: true
