@@ -24,14 +24,34 @@ jobs:
         with:
           python-version: ${{ github.event.inputs.python || '3.11' }}
 
+      - name: Show runtime & network to PyPI (debug)
+        run: |
+          set -x
+          python -V
+          python -m pip --version
+          curl -fsSI https://pypi.org/simple/ | head -n1 || true
+          curl -fsSI https://files.pythonhosted.org/ | head -n1 || true
+
       - name: Upgrade pip tooling
         run: python -m pip install -U pip wheel pip-tools
 
-      - name: Compile lockfile (docs/requirements.lock.txt)
+      - name: Validate inputs
         run: |
-          pip-compile --generate-hashes --quiet --allow-unsafe \
+          set -euxo pipefail
+          test -f docs/requirements.in || { echo "::error file=docs/requirements.in::Missing docs/requirements.in"; exit 2; }
+          echo "----- docs/requirements.in -----"
+          sed -n '1,200p' docs/requirements.in
+
+      - name: Compile lockfile (with hashes)
+        run: |
+          set -euxo pipefail
+          python -m piptools compile \
+            --resolver=backtracking \
+            --generate-hashes \
+            --allow-unsafe \
             --output-file docs/requirements.lock.txt docs/requirements.in
-          sed -n '1,80p' docs/requirements.lock.txt
+          echo "----- docs/requirements.lock.txt (head) -----"
+          sed -n '1,120p' docs/requirements.lock.txt
 
       - name: Reset wheelhouse
         run: |
@@ -40,16 +60,21 @@ jobs:
 
       - name: Download wheels (pure only)
         run: |
-          python -m pip download --only-binary=:all: --require-hashes \
-            -r docs/requirements.lock.txt -d docs/vendor/wheels
-          ls -l docs/vendor/wheels | head -n 20
+          set -euxo pipefail
+          python -m pip download \
+            --only-binary=:all: \
+            --require-hashes \
+            -r docs/requirements.lock.txt \
+            -d docs/vendor/wheels
+          echo "----- downloaded wheels -----"
+          ls -1 docs/vendor/wheels | sed -n '1,200p'
 
-      - name: Sanity-check offline install
+      - name: Sanity-check offline install & build
         run: |
+          set -euxo pipefail
           python -m venv .venv
-          source .venv/bin/activate
-          pip install --no-index --find-links=docs/vendor/wheels \
-            -r docs/requirements.lock.txt
+          . .venv/bin/activate
+          pip install --no-index --find-links=docs/vendor/wheels -r docs/requirements.lock.txt
           python -c "import mkdocs; print('mkdocs OK', mkdocs.__version__)"
           python -m mkdocs build --strict
 
@@ -62,7 +87,9 @@ jobs:
             Docs updated.
           title: "Docs: refresh wheelhouse & lock (offline PyPI)"
           body: |
-            Updates lock + wheels. Validated offline build (offline).
+            - Updated `docs/requirements.lock.txt` (pip-tools with hashes)
+            - Downloaded wheels to `docs/vendor/wheels/`
+            - Verified offline install and `mkdocs build --strict`
             **Docs updated.**
           branch: "ci/docs-refresh-wheels"
           delete-branch: true
