@@ -40,19 +40,19 @@ jobs:
           import importlib, sys
           mods = [
             ("mkdocs", "mkdocs"),
-            ("material", "mkdocs_material"),
+            ("material", "material"),
             ("awesome-pages", "mkdocs_awesome_pages_plugin"),
             ("git-date-localized", "mkdocs_git_revision_date_localized_plugin"),
             ("pymdown-extensions", "pymdownx"),
           ]
           missing = []
-          for label, mod in mods:
+          for name, module in mods:
             try:
-              m = importlib.import_module(mod)
-              ver = getattr(m, "__version__", "?")
-              print(f"[OK] {label}: {ver}")
+              m = importlib.import_module(module)
+              ver = getattr(m, "__version__", None)
+              print(f"[OK] {name}: {ver or 'version ?'} (module {module})")
             except Exception as e:
-              missing.append((label, mod, str(e)))
+              missing.append((name, module, str(e)))
           if missing:
             print("Missing modules:", missing); sys.exit(2)
           PY

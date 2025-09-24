@@ -50,11 +50,12 @@ jobs:
           python -m pip install -U pip
           python -m pip install --no-index --find-links docs/vendor/wheels -r docs/requirements.lock.txt
           python - <<'PY'
-          import mkdocs, mkdocs_material, mkdocs_awesome_pages_plugin as ap
+          import mkdocs, material
+          import mkdocs_awesome_pages_plugin as ap
           import mkdocs_git_revision_date_localized_plugin as gdl
           import pymdownx
-          print("mkdocs", getattr(mkdocs, "__version__", "?"))
-          print("material", getattr(mkdocs_material, "__version__", "?"))
+          print("mkdocs",   getattr(mkdocs, "__version__", "?"))
+          print("material", getattr(material, "__version__", "?"))
           print("awesome-pages", getattr(ap, "__version__", "?"))
           print("git-date-localized", getattr(gdl, "__version__", "?"))
           PY
