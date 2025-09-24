@@ -67,6 +67,10 @@ jobs:
           python -m venv .venv
           . .venv/bin/activate
           pip install --no-index --find-links=docs/vendor/wheels -r docs/requirements.lock.txt
+          # --- ensure import placeholder exists (for strict builds) ---
+          mkdir -p docs/import
+          [ -f docs/import/index.md ] || echo -e "# Import (autogen)\n\nPlaceholder, will be replaced by sync." > docs/import/index.md
+          # -----------------------------------------------------------
           python - <<'PY'
           import mkdocs, material, mkdocs_awesome_pages_plugin, mkdocs_git_revision_date_localized_plugin
           print("mkdocs",   getattr(mkdocs, "__version__", "?"))
