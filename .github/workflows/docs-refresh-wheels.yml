@@ -68,9 +68,9 @@ jobs:
           . .venv/bin/activate
           pip install --no-index --find-links=docs/vendor/wheels -r docs/requirements.lock.txt
           python - <<'PY'
-          import mkdocs, mkdocs_material, mkdocs_awesome_pages_plugin, mkdocs_git_revision_date_localized_plugin
-          print("mkdocs", getattr(mkdocs, "__version__", "?"))
-          print("material", getattr(mkdocs_material, "__version__", "?"))
+          import mkdocs, material, mkdocs_awesome_pages_plugin, mkdocs_git_revision_date_localized_plugin
+          print("mkdocs",   getattr(mkdocs, "__version__", "?"))
+          print("material", getattr(material, "__version__", "?"))
           print("awesome-pages", getattr(mkdocs_awesome_pages_plugin, "__version__", "?"))
           print("git-date-localized", getattr(mkdocs_git_revision_date_localized_plugin, "__version__", "?"))
           PY

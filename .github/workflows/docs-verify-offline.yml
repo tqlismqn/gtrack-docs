@@ -57,7 +57,7 @@ jobs:
           import importlib, sys
           modules = [
             ("mkdocs", "mkdocs"),
-            ("material", "mkdocs_material"),
+            ("material", "material"),
             ("awesome-pages", "mkdocs_awesome_pages_plugin"),
             ("git-date-localized", "mkdocs_git_revision_date_localized_plugin"),
             ("pymdown-extensions", "pymdownx"),
