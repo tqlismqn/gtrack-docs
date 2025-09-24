@@ -6,9 +6,10 @@ on:
         description: "Python version"
         required: false
         default: "3.11"
+
 permissions:
-  contents: write
-  pull-requests: write
+  contents: write        # важно для коммита
+  pull-requests: write   # важно для открытия PR
 
 jobs:
   refresh:
@@ -18,69 +19,66 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          persist-credentials: true
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: ${{ github.event.inputs.python || '3.11' }}
 
-      - name: Show runtime & network to PyPI (debug)
-        run: |
-          set -x
-          python -V
-          python -m pip --version
-          curl -fsSI https://pypi.org/simple/ | head -n1 || true
-          curl -fsSI https://files.pythonhosted.org/ | head -n1 || true
-
       - name: Upgrade pip tooling
         run: python -m pip install -U pip wheel pip-tools
 
       - name: Validate inputs
         run: |
-          set -euxo pipefail
+          set -euo pipefail
           test -f docs/requirements.in || { echo "::error file=docs/requirements.in::Missing docs/requirements.in"; exit 2; }
-          echo "----- docs/requirements.in -----"
-          sed -n '1,200p' docs/requirements.in
+          mkdir -p docs/vendor/wheels
 
       - name: Compile lockfile (with hashes)
         run: |
-          set -euxo pipefail
           python -m piptools compile \
             --resolver=backtracking \
             --generate-hashes \
             --allow-unsafe \
             --output-file docs/requirements.lock.txt docs/requirements.in
-          echo "----- docs/requirements.lock.txt (head) -----"
           sed -n '1,120p' docs/requirements.lock.txt
 
-      - name: Reset wheelhouse
-        run: |
-          rm -rf docs/vendor/wheels
-          mkdir -p docs/vendor/wheels
-
-      - name: Download wheels (pure only)
+      - name: Download wheels (prefer wheels; fallback to sdist)
         run: |
           set -euxo pipefail
-          python -m pip download \
-            --only-binary=:all: \
-            --require-hashes \
-            -r docs/requirements.lock.txt \
-            -d docs/vendor/wheels
-          echo "----- downloaded wheels -----"
-          ls -1 docs/vendor/wheels | sed -n '1,200p'
+          if python -m pip download --only-binary=:all: --require-hashes \
+               -r docs/requirements.lock.txt -d docs/vendor/wheels; then
+            echo "Pure wheels ok."
+          else
+            echo "::warning title=Wheel missing::Falling back to sdist for some packages"
+            python -m pip download -r docs/requirements.lock.txt -d docs/vendor/wheels
+          fi
+          ls -1 docs/vendor/wheels | head -n 50
 
       - name: Sanity-check offline install & build
         run: |
-          set -euxo pipefail
           python -m venv .venv
           . .venv/bin/activate
           pip install --no-index --find-links=docs/vendor/wheels -r docs/requirements.lock.txt
           python -c "import mkdocs; print('mkdocs OK', mkdocs.__version__)"
           python -m mkdocs build --strict
 
+      # ---- Git/PR hardening ----
+      - name: Configure git for Actions
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config --global user.name  "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git status
+
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: |
             docs(ci): refresh wheelhouse & lock for offline PyPI
 
@@ -92,4 +90,8 @@ jobs:
             - Verified offline install and `mkdocs build --strict`
             **Docs updated.**
           branch: "ci/docs-refresh-wheels"
-          delete-branch: true
+          branch-suffix: timestamp
+          add-paths: |
+            docs/requirements.lock.txt
+            docs/vendor/wheels/**
+          signoff: true
