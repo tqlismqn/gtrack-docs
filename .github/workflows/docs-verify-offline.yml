@@ -2,7 +2,7 @@ name: Docs - Verify Offline
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 6 * * 1"   # по понедельникам, 06:00 UTC
+    - cron: "0 6 * * 1"   # Mondays 06:00 UTC
 
 permissions:
   contents: read
@@ -19,24 +19,25 @@ jobs:
         with:
           python-version: '3.11'
 
-      # 0) Нет ли онлайн-установки из *.in в workflow?
-      - name: Ensure no online installs from requirements.in
+      # 0) Scan only docs-* workflows for forbidden *.in installs
+      - name: Ensure no online installs from requirements.in (docs-* only)
         run: |
           set -euo pipefail
           MATCHES=$(grep -R --line-number -E "pip +install.+requirements\.in" .github/workflows/docs-*.yml || true)
           if [ -n "$MATCHES" ]; then
-            echo "::group::Found online installs in docs-* workflows"
+            echo "::group::Forbidden lines in docs-* workflows"
             echo "$MATCHES"
             echo "::endgroup::"
-            echo "::error title=Online install from .in detected::Workflows must install from lock via wheelhouse only."
+            echo "::error title=Online install from .in detected::Docs workflows must install from lock via wheelhouse only."
             exit 2
           fi
           echo "OK: docs-* workflows do not install from *.in"
 
-      # 1) Guard: есть ли lock и колёса?
+      # 1) Guard: wheelhouse + lock exist
       - name: Detect wheelhouse/lock
         id: guard
         run: |
+          set -euo pipefail
           WCOUNT=$(ls -1 docs/vendor/wheels/*.whl 2>/dev/null | wc -l | tr -d ' ')
           LSIZE=$(test -f docs/requirements.lock.txt && wc -c < docs/requirements.lock.txt | tr -d ' ' || echo 0)
           echo "wheel_count=$WCOUNT" >> $GITHUB_OUTPUT
@@ -44,14 +45,15 @@ jobs:
           echo "Wheelhouse: $WCOUNT wheels, lock size: $LSIZE bytes"
           [ "$WCOUNT" -gt 0 ] && [ "$LSIZE" -gt 0 ] || { echo "::error title=Offline assets missing::Run 'Docs - Refresh Wheels' first."; exit 2; }
 
-      # 2) Оффлайн-установка и проверка модулей
+      # 2) Strict OFFLINE install + versions (NO 'pip -U pip')
       - name: Offline install (lock + wheelhouse) and plugin versions
         env:
           PIP_NO_INDEX: "1"
           PIP_FIND_LINKS: "docs/vendor/wheels"
           PIP_DISABLE_PIP_VERSION_CHECK: "1"
         run: |
-          python -m pip install -U pip
+          set -euo pipefail
+          python -m pip --version
           python -m pip install --no-index --find-links docs/vendor/wheels -r docs/requirements.lock.txt
           python - <<'PY'
           import importlib, sys
@@ -75,26 +77,25 @@ jobs:
             sys.exit(2)
           PY
 
-      # 3) mkdocs.yml должен включать awesome-pages
+      # 3) mkdocs.yml must include awesome-pages
       - name: Check mkdocs.yml has 'awesome-pages' plugin
         run: |
           grep -q "awesome-pages" mkdocs.yml || { echo "::error title=mkdocs.yml::Plugin 'awesome-pages' not found in plugins."; sed -n '1,200p' mkdocs.yml; exit 2; }
           echo "OK: mkdocs.yml includes awesome-pages"
 
-      # 4) Smoke-тест автонавигации: временно добавляем файл в docs/import/
+      # 4) Auto-nav smoke in docs/import/
       - name: Auto-nav smoke file
         run: |
           mkdir -p docs/import
           echo -e "# Auto-Nav Smoke\n\nThis page is created by CI to verify awesome-pages + import/." > docs/import/__autonav_smoke.md
           ls -l docs/import
 
-      # 5) Строгая сборка и проверка, что страница появилась в site/
+      # 5) Strict build and assert smoke page is rendered
       - name: Build (strict) and assert smoke page exists
         run: |
           python -m mkdocs build --strict -v
           test -f site/import/__autonav_smoke/index.html || { echo "::error title=Auto-Nav failed::site/import/__autonav_smoke/index.html not found"; exit 2; }
           echo "OK: Auto-Nav smoke page rendered"
 
-      # 6) Итог
       - name: Summary
-        run: echo "✅ Offline install verified, plugins present, auto-nav for /import/ works."
+        run: echo "✅ Offline install verified, plugins present, auto-nav works."

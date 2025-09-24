@@ -47,7 +47,7 @@ jobs:
           PIP_FIND_LINKS: "docs/vendor/wheels"
           PIP_DISABLE_PIP_VERSION_CHECK: "1"
         run: |
-          python -m pip install -U pip
+          python -m pip --version
           python -m pip install --no-index --find-links docs/vendor/wheels -r docs/requirements.lock.txt
           python - <<'PY'
           import mkdocs, mkdocs_material, mkdocs_awesome_pages_plugin as ap
