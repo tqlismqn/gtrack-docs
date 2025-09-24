@@ -47,18 +47,25 @@ jobs:
             echo "allowed=true" >> $GITHUB_OUTPUT
           fi
 
-      - name: Decide trust
+      - name: Compute PR trust (safe env quoting)
         id: trust
+        shell: bash
+        env:
+          REF: ${{ github.head_ref || github.ref_name }}
+          TITLE: ${{ github.event.pull_request.title || '' }}
+          LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+          AUTHOR: ${{ github.event.pull_request.user.login || '' }}
         run: |
-          REF="${{ github.event.pull_request.head.ref }}"
-          TITLE="${{ github.event.pull_request.title }}"
-          LABELS="${{ join(github.event.pull_request.labels.*.name, ',') }}"
-          AUTHOR="${{ github.event.pull_request.user.login }}"
+          set -euo pipefail
+          echo "REF=$REF"
+          echo "TITLE=$TITLE"
+          echo "LABELS=$LABELS"
+          echo "AUTHOR=$AUTHOR"
           TRUSTED=false
           if [[ "$REF" == *sync* || "$LABELS" == *sync* || "$TITLE" == *"docs(sync)"* || "$AUTHOR" == "tqlismqn" || "$AUTHOR" == "dependabot[bot]" || "$AUTHOR" == "gtrack-sync-bot" ]]; then
             TRUSTED=true
           fi
-          echo "trusted=$TRUSTED" >> $GITHUB_OUTPUT
+          echo "trusted=$TRUSTED" >> "$GITHUB_OUTPUT"
 
       - name: Enable auto-merge (squash)
         if: steps.files.outputs.allowed == 'true' && steps.trust.outputs.trusted == 'true'
