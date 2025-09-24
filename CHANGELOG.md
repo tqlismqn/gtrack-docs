@@ -3,8 +3,7 @@
 Все заметные изменения в документации фиксируются в этом файле.
 
 ## docs-vX.Y.(Z+1) — <YYYY-MM-DD>
-- UI: расширена ширина макета (1400px), ReDoc-страницы без правого TOC.
-- Навигация: возвращены API v0 (Health, Водители); добавлен раздел Imported.
+- Imported: включена авто-навигация через mkdocs-awesome-pages-plugin; добавлена поддержка navigation.indexes.
 
 ## docs-vX.Y.(Z+1) — 2025-09-24
 - Fix: ReDoc loads spec via absolute URL; v0 YAML replaced with clean, backend-aligned version (UTF-8).

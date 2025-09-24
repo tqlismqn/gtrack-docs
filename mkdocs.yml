@@ -1,9 +1,13 @@
 site_name: G-Track Docs
+
 theme:
   name: material
+  features:
+    - navigation.indexes   # папка с index.md становится "лендингом" раздела
 
 plugins:
   - search
+  - awesome-pages
 
 extra_css:
   - stylesheets/layout.css
@@ -18,5 +22,4 @@ nav:
       - Обзор: spec/index.md
       - API v0 (ReDoc): spec/redoc/v0.md
       - API v1 (ReDoc, DRAFT): spec/redoc/v1.md
-  - Imported:
-      - Обзор: import/index.md
+  - Imported: import/

@@ -1,0 +1,13 @@
+title: Imported
+collapse_single_pages: true
+arrange:
+  - index.md
+  - "*"
+# Подсказки:
+# - чтобы скрыть файл/папку из меню, создайте рядом .pages и добавьте:
+#   exclude:
+#     - "_drafts/*"
+#     - "README-private.md"
+# - чтобы задать кастомный заголовок конкретной странице:
+#   - file: some.md
+#     title: Читабельный заголовок
