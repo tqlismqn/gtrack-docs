@@ -1,5 +1,11 @@
 # Документация — Changelog
 
+## docs-v2.8.3 — Enforce offline install + awesome-pages check
+- CI: офлайн только по lock + wheelhouse (запрет на install из .in)
+- Wheelhouse включает setuptools/wheel для сборки sdist офлайн
+- Пин mkdocs-awesome-pages-plugin==2.9.2 и self-check импорта
+- Автонавигация для docs/import/**
+
 ## docs-v2.8.2 — Offline PyPI + Auto-Nav for /import
 - CI: офлайн-установка зависимостей из `docs/vendor/wheels`
 - Новый чек `check-docs` с выводом версий плагинов
