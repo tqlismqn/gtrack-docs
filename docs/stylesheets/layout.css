@@ -1,0 +1,12 @@
+/* Global width tweak for Material (was ~61rem) */
+.md-grid {
+  max-width: 1400px;
+}
+
+/* ReDoc pages: remove extra gaps and let ReDoc breathe */
+#redoc-v0, #redoc-v1 {
+  margin: 0;
+}
+.md-content__inner {
+  /* keep default spacing elsewhere; no hard reset here */
+}
