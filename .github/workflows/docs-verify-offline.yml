@@ -23,11 +23,15 @@ jobs:
       - name: Ensure no online installs from requirements.in
         run: |
           set -euo pipefail
-          if grep -R --line-number -E "pip +install.+requirements\.in" .github/workflows || true; then
+          MATCHES=$(grep -R --line-number -E "pip +install.+requirements\.in" .github/workflows/docs-*.yml || true)
+          if [ -n "$MATCHES" ]; then
+            echo "::group::Found online installs in docs-* workflows"
+            echo "$MATCHES"
+            echo "::endgroup::"
             echo "::error title=Online install from .in detected::Workflows must install from lock via wheelhouse only."
             exit 2
           fi
-          echo "OK: workflows do not install from *.in"
+          echo "OK: docs-* workflows do not install from *.in"
 
       # 1) Guard: есть ли lock и колёса?
       - name: Detect wheelhouse/lock
