@@ -1,2 +1,2 @@
-# Do not edit directly; edit docs/requirements.in and run the "Docs - Refresh Wheels" workflow.
+# Do not edit directly — edit docs/requirements.in and run the "Docs - Refresh Wheels" workflow.
 -r docs/requirements.lock.txt

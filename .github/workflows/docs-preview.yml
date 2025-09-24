@@ -1,4 +1,4 @@
-name: Docs - Preview
+name: check-docs
 on:
   pull_request:
     branches: [ main ]
@@ -24,13 +24,17 @@ jobs:
         run: |
           WCOUNT=$(ls -1 docs/vendor/wheels/*.whl 2>/dev/null | wc -l | tr -d ' ')
           LSIZE=$(test -f docs/requirements.lock.txt && wc -c < docs/requirements.lock.txt | tr -d ' ' || echo 0)
+          echo "wheel_count=$WCOUNT" >> $GITHUB_OUTPUT
+          echo "lock_size=$LSIZE" >> $GITHUB_OUTPUT
           if [ "$WCOUNT" -gt 0 ] && [ "$LSIZE" -gt 0 ]; then
             echo "ready=true" >> $GITHUB_OUTPUT
+            echo "Wheelhouse OK ($WCOUNT wheels), lock size $LSIZE"
           else
             echo "ready=false" >> $GITHUB_OUTPUT
+            echo "::notice ::Skipping build: wheels=$WCOUNT, lock_size=$LSIZE"
           fi
 
-      - name: Install docs deps (OFFLINE from wheelhouse)
+      - name: Install docs deps (OFFLINE from wheelhouse) + print versions
         if: steps.guard.outputs.ready == 'true'
         env:
           PIP_NO_INDEX: "1"
@@ -39,12 +43,28 @@ jobs:
         run: |
           python -m pip install -U pip
           python -m pip install --no-index --find-links docs/vendor/wheels -r docs/requirements.lock.txt
-          python -c "import mkdocs; print('mkdocs', mkdocs.__version__)"
+          python - <<'PY'
+          import importlib, pkgutil, sys
+          mods = [
+            ("mkdocs", "mkdocs"),
+            ("material", "mkdocs_material"),
+            ("awesome-pages", "mkdocs_awesome_pages_plugin"),
+            ("git-date-localized", "mkdocs_git_revision_date_localized_plugin"),
+            ("pymdown-extensions", "pymdownx")
+          ]
+          for name, module in mods:
+            try:
+              m = importlib.import_module(module)
+              ver = getattr(m, "__version__", None)
+              print(f"[OK] {name}: {ver or 'version ?'} (module {module})")
+            except Exception as e:
+              print(f"[MISS] {name} (module {module}) -> {e}"); sys.exit(2)
+          PY
 
       - name: Build docs (strict)
         if: steps.guard.outputs.ready == 'true'
         run: python -m mkdocs build --strict
 
-      - name: Skip build (wheelhouse not ready yet)
+      - name: Skip build (wheelhouse/lock not ready yet)
         if: steps.guard.outputs.ready != 'true'
-        run: echo "::notice title=Docs build skipped::Wheelhouse/lock not ready yet. Merge infra PR and run 'Docs - Refresh Wheels'."
+        run: echo "::notice title=Docs build skipped::Wheelhouse пустой или lock отсутствует. Это ожидаемо для первого PR."

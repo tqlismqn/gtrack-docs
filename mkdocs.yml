@@ -1,9 +1,15 @@
 site_name: G-Track Docs
 theme:
   name: material
+  features:
+    - navigation.indexes
 
 plugins:
   - search
+  - awesome-pages
+  - git-revision-date-localized:
+      type: date
+      fallback_to_build_date: true
 
 extra_css:
   - stylesheets/layout.css
@@ -18,8 +24,8 @@ nav:
       - Обзор: spec/index.md
       - API v0 (ReDoc): spec/redoc/v0.md
       - API v1 (ReDoc, DRAFT): spec/redoc/v1.md
-  - Imported:
-      - Обзор: import/index.md
   - Ops:
       - CI:
           - Offline PyPI: ops/CI/offline-pip.md
+  - Import:
+      - import/
