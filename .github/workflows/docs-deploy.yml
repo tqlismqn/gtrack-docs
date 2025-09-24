@@ -3,6 +3,7 @@ on:
   push:
     branches: [ main ]
 permissions:
+  actions: write
   contents: read
   pages: write
   id-token: write
@@ -25,20 +26,34 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Detect wheelhouse/lock
+      - name: Detect wheelhouse/lock (strict for main)
         id: guard
         run: |
           WCOUNT=$(ls -1 docs/vendor/wheels/*.whl 2>/dev/null | wc -l | tr -d ' ')
           LSIZE=$(test -f docs/requirements.lock.txt && wc -c < docs/requirements.lock.txt | tr -d ' ' || echo 0)
           echo "wheel_count=$WCOUNT" >> $GITHUB_OUTPUT
-          echo "lock_size=$LSIZE" >> $GITHUB_OUTPUT
+          echo "lock_size=$LSIZE"   >> $GITHUB_OUTPUT
           if [ "$WCOUNT" -gt 0 ] && [ "$LSIZE" -gt 0 ]; then
             echo "ready=true" >> $GITHUB_OUTPUT
             echo "Wheelhouse OK ($WCOUNT wheels), lock size $LSIZE"
           else
             echo "ready=false" >> $GITHUB_OUTPUT
-            echo "::notice ::Skipping build: wheels=$WCOUNT, lock_size=$LSIZE (main)"
+            echo "::warning ::Offline assets missing on main (wheels=$WCOUNT, lock_size=$LSIZE). Will dispatch 'Docs - Refresh Wheels' and fail this run."
           fi
+
+      - name: Auto-dispatch 'Docs - Refresh Wheels' (if missing)
+        if: steps.guard.outputs.ready != 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: "docs-refresh-wheels.yml",
+              ref: "main",
+              inputs: { python: "3.11" }
+            });
+            core.setFailed("Offline assets missing. Dispatched 'Docs - Refresh Wheels'. Merge its PR, then re-run deploy.")
 
       - name: Install docs deps (OFFLINE)
         if: steps.guard.outputs.ready == 'true'
@@ -47,13 +62,12 @@ jobs:
           PIP_FIND_LINKS: "docs/vendor/wheels"
           PIP_DISABLE_PIP_VERSION_CHECK: "1"
         run: |
-          python -m pip install -U pip
+          python -m pip --version
           python -m pip install --no-index --find-links docs/vendor/wheels -r docs/requirements.lock.txt
           python - <<'PY'
           import mkdocs, material
           import mkdocs_awesome_pages_plugin as ap
           import mkdocs_git_revision_date_localized_plugin as gdl
-          import pymdownx
           print("mkdocs",   getattr(mkdocs, "__version__", "?"))
           print("material", getattr(material, "__version__", "?"))
           print("awesome-pages", getattr(ap, "__version__", "?"))
