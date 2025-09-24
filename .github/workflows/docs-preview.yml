@@ -3,21 +3,14 @@ on:
   pull_request:
     branches: [ main ]
     types: [opened, synchronize, reopened, ready_for_review]
-
-permissions:
-  contents: read
-
+permissions: { contents: read }
 jobs:
   check-docs:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.11' }
 
       - name: Detect wheelhouse/lock
         id: guard
@@ -34,7 +27,7 @@ jobs:
             echo "::notice ::Skipping build: wheels=$WCOUNT, lock_size=$LSIZE"
           fi
 
-      - name: Install docs deps (OFFLINE from wheelhouse) + print versions
+      - name: Install docs deps (OFFLINE from wheelhouse) + plugin check
         if: steps.guard.outputs.ready == 'true'
         env:
           PIP_NO_INDEX: "1"
@@ -44,21 +37,24 @@ jobs:
           python -m pip install -U pip
           python -m pip install --no-index --find-links docs/vendor/wheels -r docs/requirements.lock.txt
           python - <<'PY'
-          import importlib, pkgutil, sys
+          import importlib, sys
           mods = [
             ("mkdocs", "mkdocs"),
             ("material", "mkdocs_material"),
             ("awesome-pages", "mkdocs_awesome_pages_plugin"),
             ("git-date-localized", "mkdocs_git_revision_date_localized_plugin"),
-            ("pymdown-extensions", "pymdownx")
+            ("pymdown-extensions", "pymdownx"),
           ]
-          for name, module in mods:
+          missing = []
+          for label, mod in mods:
             try:
-              m = importlib.import_module(module)
-              ver = getattr(m, "__version__", None)
-              print(f"[OK] {name}: {ver or 'version ?'} (module {module})")
+              m = importlib.import_module(mod)
+              ver = getattr(m, "__version__", "?")
+              print(f"[OK] {label}: {ver}")
             except Exception as e:
-              print(f"[MISS] {name} (module {module}) -> {e}"); sys.exit(2)
+              missing.append((label, mod, str(e)))
+          if missing:
+            print("Missing modules:", missing); sys.exit(2)
           PY
 
       - name: Build docs (strict)
@@ -67,4 +63,4 @@ jobs:
 
       - name: Skip build (wheelhouse/lock not ready yet)
         if: steps.guard.outputs.ready != 'true'
-        run: echo "::notice title=Docs build skipped::Wheelhouse пустой или lock отсутствует. Это ожидаемо для первого PR."
+        run: echo "::notice title=Docs build skipped::Wheelhouse пустой или lock отсутствует. Это ожидаемо для инфраструктурных PR."

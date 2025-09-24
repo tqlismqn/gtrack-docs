@@ -8,25 +8,17 @@ on:
         default: "3.11"
   schedule:
     - cron: "0 6 1 * *"
-
 permissions:
   contents: write
   pull-requests: write
-
 jobs:
   refresh:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout (full)
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          persist-credentials: true
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ github.event.inputs.python || '3.11' }}
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0, persist-credentials: true }
+      - uses: actions/setup-python@v5
+        with: { python-version: ${{ github.event.inputs.python || '3.11' }} }
 
       - name: Upgrade pip tooling
         run: python -m pip install -U pip wheel pip-tools
@@ -46,6 +38,10 @@ jobs:
             --output-file docs/requirements.lock.txt docs/requirements.in
           sed -n '1,120p' docs/requirements.lock.txt
 
+      - name: Bootstrap build tools into wheelhouse
+        run: |
+          python -m pip download --only-binary=:all: -d docs/vendor/wheels setuptools wheel
+
       - name: Download wheels (prefer wheels; fallback to sdist)
         run: |
           set -euxo pipefail
@@ -63,12 +59,17 @@ jobs:
           python -m venv .venv
           . .venv/bin/activate
           pip install --no-index --find-links=docs/vendor/wheels -r docs/requirements.lock.txt
-          python -c "import mkdocs; print('mkdocs OK', mkdocs.__version__)"
+          python - <<'PY'
+          import mkdocs, mkdocs_material, mkdocs_awesome_pages_plugin, mkdocs_git_revision_date_localized_plugin
+          print("mkdocs", getattr(mkdocs, "__version__", "?"))
+          print("material", getattr(mkdocs_material, "__version__", "?"))
+          print("awesome-pages", getattr(mkdocs_awesome_pages_plugin, "__version__", "?"))
+          print("git-date-localized", getattr(mkdocs_git_revision_date_localized_plugin, "__version__", "?"))
+          PY
           python -m mkdocs build --strict
 
       - name: Configure git for Actions
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        env: { GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} }
         run: |
           git config --global user.name  "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -92,7 +93,5 @@ jobs:
           title: "Docs: refresh wheelhouse & lock (offline PyPI)"
           body: |
             - Updated `docs/requirements.lock.txt` (pip-tools with hashes)
-            - Downloaded wheels to `docs/vendor/wheels/`
+            - Downloaded wheels to `docs/vendor/wheels/` (+ setuptools, wheel)
             - Verified offline install and `python -m mkdocs build --strict`
-
-            **Next:** Merge this PR. Then /import/ auto-appears in nav as soon as files land in docs/import/.
