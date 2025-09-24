@@ -3,7 +3,7 @@
 Все заметные изменения в документации фиксируются в этом файле.
 
 ## docs-vX.Y.(Z+1) — 2025-09-24
-- Fix: ReDoc использует абсолютные пути к YAML, устранён 404 при загрузке спеки.
+- Fix: ReDoc loads spec via absolute URL; v0 YAML replaced with clean, backend-aligned version (UTF-8).
 
 ## docs-vX.Y.(Z+1) — 2025-09-24
 

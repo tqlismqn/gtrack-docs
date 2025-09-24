@@ -1,17 +1,15 @@
 # Update Pack — docs-vX.Y.(Z+1)
 
 ## Что изменилось
-
-- Исправлены пути к OpenAPI YAML на абсолютные:
-  - ReDoc v0: `/spec/api/gtrack-v0.yaml`
-  - ReDoc v1: `/spec/api/gtrack-v1.yaml`
-- Ссылки «Скачать YAML» тоже переведены на абсолютные пути.
+- ReDoc теперь использует абсолютные URL к YAML (устранён 404).
+- Перезаписан `spec/api/gtrack-v0.yaml`:
+  - UTF-8, без повреждённых символов.
+  - Схемы и поля приведены в соответствие с backend v0 (firstName/lastName/status и т.д.).
 
 ## Как проверить
-
-- Откройте Specs → API v0 (ReDoc): рендер загружается без 404.
-- Прямая ссылка на YAML отдаёт файл (код 200).
+- Открыть Specs → **API v0 (ReDoc)** — страница рендерится, без ошибки 404.
+- Прямая ссылка на YAML: `/spec/api/gtrack-v0.yaml` — отдаёт файл.
+- MkDocs build: `mkdocs build --strict` — зелёный.
 
 ## Примечания
-
-- Абсолютные пути устойчивы к изменению структуры страниц MkDocs.
+- Любые будущие изменения API сопровождать обновлением OpenAPI YAML + Update Pack.

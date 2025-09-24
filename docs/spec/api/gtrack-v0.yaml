@@ -1,18 +1,16 @@
 openapi: 3.1.0
 info:
   title: G-Track API v0
-  version: 0.3.1
-  description: |
-    Mock API for демонстрации и интеграции фронтенда на мок-данных.
-    Стабильная поверхность без БД.
+  version: 0.0.1
+  description: >
+    Mock API surface for frontend integration (no DB). Stable endpoints: /health, /drivers, /drivers/{id}.
 servers:
   - url: http://localhost:3000
     description: Local mock/dev
 paths:
   /health:
     get:
-      summary: Health check
-      description: Проверка доступности сервиса.
+      summary: Service health
       responses:
         '200':
           description: OK
@@ -20,114 +18,107 @@ paths:
             application/json:
               schema:
                 type: object
-                required:
-                  - status
+                required: [status]
                 properties:
                   status:
                     type: string
                     example: ok
   /drivers:
     get:
-      summary: Список водителей
-      description: Возвращает страницу водителей с поддержкой пагинации и фильтров.
+      summary: List drivers (pagination + filters)
       parameters:
-        - name: page
-          in: query
-          schema:
-            type: integer
-            minimum: 1
-          description: Номер страницы (>=1).
-        - name: limit
-          in: query
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 100
-          description: Размер страницы (1..100).
-        - name: search
-          in: query
-          schema:
-            type: string
-          description: Подстрочный фильтр по имени/позывному.
-        - name: status
-          in: query
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1, default: 1 }
+          description: Page number (>=1).
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+          description: Page size (1..100).
+        - in: query
+          name: search
+          schema: { type: string, minLength: 1 }
+          description: Substring filter by firstName/lastName/email/rc.
+        - in: query
+          name: status
           schema:
             type: string
-          description: Фильтр по статусу (например, `active`, `blocked`).
+            enum: [Active, OnLeave, Inactive, Terminated]
+          description: Status filter.
       responses:
         '200':
-          description: Успешный ответ со списком водителей.
+          description: OK
           content:
             application/json:
               schema:
-                type: object
-                required:
-                  - data
-                  - meta
-                properties:
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Driver'
-                  meta:
-                    $ref: '#/components/schemas/PaginationMeta'
+                $ref: '#/components/schemas/PaginatedDrivers'
+        '400':
+          description: Validation error
   /drivers/{id}:
     get:
-      summary: Карточка водителя
-      description: Возвращает данные конкретного водителя.
+      summary: Get driver by ID
       parameters:
-        - name: id
-          in: path
+        - in: path
+          name: id
           required: true
-          schema:
-            type: string
-          description: Идентификатор водителя.
+          schema: { type: string }
       responses:
         '200':
-          description: Найденный водитель.
+          description: OK
           content:
             application/json:
-              schema:
-                $ref: '#/components/schemas/Driver'
+              schema: { $ref: '#/components/schemas/Driver' }
         '404':
-          description: Водитель не найден.
+          description: Not Found
 components:
   schemas:
     Driver:
       type: object
       additionalProperties: false
-      required:
-        - id
-        - name
-        - status
+      required: [id, firstName, lastName, status]
       properties:
-        id:
-          type: string
-          example: drv-001
-        name:
-          type: string
-          example: Иван Иванов
+        id: { type: string, example: d1 }
+        firstName: { type: string, example: Jan }
+        lastName: { type: string, example: Novák }
+        rc: { type: string, nullable: true, example: "800101/1234" }
+        citizenship: { type: string, nullable: true, example: CZ }
+        phone: { type: string, nullable: true, example: "+420 777 000 001" }
+        email: { type: string, format: email, nullable: true, example: jan.novak@example.com }
         status:
           type: string
-          example: active
+          enum: [Active, OnLeave, Inactive, Terminated]
+        documents:
+          type: object
+          nullable: true
+          properties:
+            license:
+              type: object
+              nullable: true
+              required: [number]
+              properties:
+                number: { type: string, example: CZ1234567 }
+                validUntil: { type: string, format: date, nullable: true, example: "2027-05-31" }
+            passport:
+              type: object
+              nullable: true
+              properties:
+                number: { type: string, example: P1234567 }
+                validUntil: { type: string, format: date, nullable: true, example: "2030-12-31" }
     PaginationMeta:
       type: object
       additionalProperties: false
-      required:
-        - page
-        - limit
-        - total
-        - totalPages
+      required: [page, limit, total, totalPages]
       properties:
-        page:
-          type: integer
-          example: 1
-        limit:
-          type: integer
-          example: 20
-        total:
-          type: integer
-          example: 42
-        totalPages:
-          type: integer
-          example: 3
+        page: { type: integer, example: 1 }
+        limit: { type: integer, example: 20 }
+        total: { type: integer, example: 5 }
+        totalPages: { type: integer, example: 1 }
+    PaginatedDrivers:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/Driver' }
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
