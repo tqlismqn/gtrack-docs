@@ -5,12 +5,18 @@ theme:
 plugins:
   - search
 
+extra_css:
+  - stylesheets/layout.css
+
 nav:
   - API:
       - v0:
           - Обзор: api/v0/index.md
-          # (если есть отдельные страницы health/drivers — они появятся здесь позже)
+          - Health: api/v0/health.md
+          - Водители: api/v0/drivers.md
   - Specs:
       - Обзор: spec/index.md
       - API v0 (ReDoc): spec/redoc/v0.md
       - API v1 (ReDoc, DRAFT): spec/redoc/v1.md
+  - Imported:
+      - Обзор: import/index.md
