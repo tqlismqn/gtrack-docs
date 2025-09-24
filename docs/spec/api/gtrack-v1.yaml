@@ -1,0 +1,9 @@
+openapi: 3.0.3
+info:
+  title: GTrack API v1 (DRAFT)
+  version: '1.0.0-draft'
+  description: |
+    Черновая спецификация будущей версии API v1. Структура и контракты могут измениться.
+servers:
+  - url: https://api.g-track.example/v1
+paths: {}

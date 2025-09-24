@@ -1,0 +1,170 @@
+openapi: 3.0.3
+info:
+  title: GTrack API v0
+  version: '0.3.0'
+  description: |
+    Публичное API бэкенда GTrack версии v0.
+servers:
+  - url: https://api.g-track.example/v0
+paths:
+  /health:
+    get:
+      summary: Проверка здоровья сервиса
+      responses:
+        '200':
+          description: Сервис работает корректно.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+  /drivers:
+    get:
+      summary: Список водителей с маскированными полями
+      description: Возвращает список водителей с замаскированными чувствительными полями.
+      security:
+        - bearerAuth: []
+        - appRole: []
+      responses:
+        '200':
+          description: Успешный ответ с маскированными данными.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DriverMasked'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Роль пользователя не имеет доступа к модулю Drivers.
+  /drivers/{id}/reveal:
+    post:
+      summary: Раскрытие чувствительных данных водителя
+      description: |
+        Возвращает незашифрованные поля по отдельному водителю.
+        Доступно только для ролей `operations.admin` и `support.senior`.
+      security:
+        - bearerAuth: []
+        - appRole: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reason
+              properties:
+                reason:
+                  type: string
+                  minLength: 10
+                  maxLength: 256
+                  description: Причина раскрытия, сохраняется в аудит.
+      responses:
+        '200':
+          description: Успешное раскрытие чувствительных данных.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DriverRevealed'
+        '400':
+          description: Пустая или слишком короткая причина.
+        '403':
+          description: Роль не имеет доступа к раскрытию.
+        '404':
+          description: Водитель не найден или скрыт политиками RLS.
+        '409':
+          description: Существует активная блокировка на раскрытие (rate-limit).
+        '422':
+          description: Причина превышает 256 символов или содержит запрещённые символы.
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    appRole:
+      type: apiKey
+      in: header
+      name: APP_ROLE_HEADER
+  schemas:
+    DriverMasked:
+      type: object
+      properties:
+        id:
+          type: string
+          example: drv_001
+        full_name:
+          type: string
+          example: Иван Петров
+        rc_mask:
+          type: string
+          example: 850101/1***
+        passport_mask:
+          type: string
+          example: PA******89
+        driver_license_mask:
+          type: string
+          example: DL*****42
+        iban_mask:
+          type: string
+          example: CZ65 **** **** 1234 56
+        swift_mask:
+          type: string
+          example: KOMBCZ**
+        tacho_card_mask:
+          type: string
+          example: TA****90
+        documents:
+          type: array
+          items:
+            $ref: '#/components/schemas/DriverDocument'
+    DriverDocument:
+      type: object
+      properties:
+        doc_type:
+          type: string
+          example: driver_license
+        expires_at:
+          type: string
+          format: date
+          example: '2026-05-10'
+        status:
+          type: string
+          example: valid
+    DriverRevealed:
+      allOf:
+        - $ref: '#/components/schemas/DriverMasked'
+        - type: object
+          properties:
+            national_id_rc:
+              type: string
+              example: 850101/1234
+            passport_no:
+              type: string
+              example: PA123456789
+            driver_license_no:
+              type: string
+              example: DL9876542
+            iban:
+              type: string
+              example: CZ6508000000001234567899
+            swift:
+              type: string
+              example: KOMBCZPP
+            tacho_card_no:
+              type: string
+              example: TA12345690
+  responses:
+    Unauthorized:
+      description: Пользователь не авторизован.

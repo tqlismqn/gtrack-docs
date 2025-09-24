@@ -33,6 +33,7 @@ nav:
   - Changelog: CHANGELOG.md
 plugins:
   - search
+  # - redoc   # removed: using CDN-based embed instead
   - git-revision-date-localized:
       type: timeago
       fallback_to_build_date: true
