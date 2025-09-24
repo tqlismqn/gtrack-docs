@@ -1,2 +1,2 @@
-mkdocs==1.5.3
-mkdocs-material==9.5.17
+# Do not edit directly; edit docs/requirements.in and run the "Docs - Refresh Wheels" workflow.
+-r docs/requirements.lock.txt

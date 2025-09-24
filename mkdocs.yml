@@ -20,3 +20,7 @@ nav:
       - API v1 (ReDoc, DRAFT): spec/redoc/v1.md
   - Imported:
       - Обзор: import/index.md
+  - Ops:
+      - CI:
+          - Offline PyPI: ops/CI/offline-pip.md
+  - Changelog: CHANGELOG.md
