@@ -1,0 +1,32 @@
+openapi: 3.1.0
+info:
+  title: G-Track API v1 (DRAFT)
+  version: 1.0.0-draft
+  description: |
+    ⚠️ DRAFT — рабочая заготовка для будущей v1.
+    Содержимое может меняться без предупреждения. Не используйте в проде.
+servers:
+  - url: http://localhost:3000
+    description: Local mock/dev
+paths:
+  /health:
+    get:
+      summary: Service health (compat)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - status
+                properties:
+                  status:
+                    type: string
+                    example: ok
+components:
+  schemas:
+    _placeholder:
+      type: object
+      additionalProperties: false

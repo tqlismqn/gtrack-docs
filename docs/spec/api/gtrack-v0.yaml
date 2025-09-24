@@ -1,0 +1,133 @@
+openapi: 3.1.0
+info:
+  title: G-Track API v0
+  version: 0.3.1
+  description: |
+    Mock API for демонстрации и интеграции фронтенда на мок-данных.
+    Стабильная поверхность без БД.
+servers:
+  - url: http://localhost:3000
+    description: Local mock/dev
+paths:
+  /health:
+    get:
+      summary: Health check
+      description: Проверка доступности сервиса.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - status
+                properties:
+                  status:
+                    type: string
+                    example: ok
+  /drivers:
+    get:
+      summary: Список водителей
+      description: Возвращает страницу водителей с поддержкой пагинации и фильтров.
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+          description: Номер страницы (>=1).
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+          description: Размер страницы (1..100).
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Подстрочный фильтр по имени/позывному.
+        - name: status
+          in: query
+          schema:
+            type: string
+          description: Фильтр по статусу (например, `active`, `blocked`).
+      responses:
+        '200':
+          description: Успешный ответ со списком водителей.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                  - meta
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Driver'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+  /drivers/{id}:
+    get:
+      summary: Карточка водителя
+      description: Возвращает данные конкретного водителя.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Идентификатор водителя.
+      responses:
+        '200':
+          description: Найденный водитель.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Driver'
+        '404':
+          description: Водитель не найден.
+components:
+  schemas:
+    Driver:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - name
+        - status
+      properties:
+        id:
+          type: string
+          example: drv-001
+        name:
+          type: string
+          example: Иван Иванов
+        status:
+          type: string
+          example: active
+    PaginationMeta:
+      type: object
+      additionalProperties: false
+      required:
+        - page
+        - limit
+        - total
+        - totalPages
+      properties:
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 20
+        total:
+          type: integer
+          example: 42
+        totalPages:
+          type: integer
+          example: 3
