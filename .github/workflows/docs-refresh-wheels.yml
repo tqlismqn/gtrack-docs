@@ -14,29 +14,55 @@ jobs:
   refresh:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with: { fetch-depth: 0 }
-      - uses: actions/setup-python@v5
-        with: { python-version: ${{ github.event.inputs.python || '3.11' }} }
+      - name: Checkout (full)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ github.event.inputs.python || '3.11' }}
+
       - name: Upgrade pip tooling
         run: python -m pip install -U pip wheel pip-tools
-      - name: Compile lockfile
-        run: pip-compile --generate-hashes --quiet --allow-unsafe -o docs/requirements.lock.txt docs/requirements.in
+
+      - name: Compile lockfile (docs/requirements.lock.txt)
+        run: |
+          pip-compile --generate-hashes --quiet --allow-unsafe \
+            --output-file docs/requirements.lock.txt docs/requirements.in
+          sed -n '1,80p' docs/requirements.lock.txt
+
       - name: Reset wheelhouse
-        run: rm -rf docs/vendor/wheels && mkdir -p docs/vendor/wheels
+        run: |
+          rm -rf docs/vendor/wheels
+          mkdir -p docs/vendor/wheels
+
       - name: Download wheels (pure only)
-        run: python -m pip download --only-binary=:all: --require-hashes -r docs/requirements.lock.txt -d docs/vendor/wheels
+        run: |
+          python -m pip download --only-binary=:all: --require-hashes \
+            -r docs/requirements.lock.txt -d docs/vendor/wheels
+          ls -l docs/vendor/wheels | head -n 20
+
       - name: Sanity-check offline install
         run: |
-          python -m venv .venv && source .venv/bin/activate
-          pip install --no-index --find-links=docs/vendor/wheels -r docs/requirements.lock.txt
-          python -c "import mkdocs; print('mkdocs OK')"
+          python -m venv .venv
+          source .venv/bin/activate
+          pip install --no-index --find-links=docs/vendor/wheels \
+            -r docs/requirements.lock.txt
+          python -c "import mkdocs; print('mkdocs OK', mkdocs.__version__)"
           python -m mkdocs build --strict
+
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
         with:
-          commit-message: "docs(ci): refresh wheelhouse & lock for offline PyPI\n\nDocs updated."
+          commit-message: |
+            docs(ci): refresh wheelhouse & lock for offline PyPI
+
+            Docs updated.
           title: "Docs: refresh wheelhouse & lock (offline PyPI)"
-          body: "Updates lock + wheels. Validated offline build. **Docs updated.**"
+          body: |
+            Updates lock + wheels. Validated offline build (offline).
+            **Docs updated.**
           branch: "ci/docs-refresh-wheels"
           delete-branch: true
