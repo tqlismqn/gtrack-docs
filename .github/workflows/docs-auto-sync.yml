@@ -1,0 +1,117 @@
+name: Docs - Auto Sync to Import
+on:
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: "Why sync?"
+        required: false
+  schedule:
+    - cron: "30 5 * * *"   # daily 05:30 UTC
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    env:
+      APP_REPO: ${{ github.repository_owner }}/gtrack-app
+      BE_REPO:  ${{ github.repository_owner }}/gtrack-backend
+    steps:
+      - name: Checkout gtrack-docs
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Checkout gtrack-app (docs)
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.APP_REPO }}
+          path: src-app
+          sparse-checkout: |
+            docs
+          sparse-checkout-cone-mode: true
+
+      - name: Checkout gtrack-backend (docs)
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.BE_REPO }}
+          path: src-backend
+          sparse-checkout: |
+            docs
+          sparse-checkout-cone-mode: true
+
+      - name: Prepare import tree
+        run: |
+          set -euxo pipefail
+          mkdir -p docs/import/app docs/import/backend
+          # Copy only useful formats
+          rsync -a --delete --prune-empty-dirs \
+            --include="*/" \
+            --include="*.md" --include="*.yaml" --include="*.yml" --include="*.json" \
+            --include="*.png" --include="*.jpg" --include="*.jpeg" --include="*.svg" \
+            --exclude="*" \
+            src-app/docs/  docs/import/app/  || true
+          rsync -a --delete --prune-empty-dirs \
+            --include="*/" \
+            --include="*.md" --include="*.yaml" --include="*.yml" --include="*.json" \
+            --include="*.png" --include="*.jpg" --include="*.jpeg" --include="*.svg" \
+            --exclude="*" \
+            src-backend/docs/ docs/import/backend/ || true
+          touch docs/import/.keep
+
+      - name: Detect changes
+        id: diff
+        run: |
+          set -e
+          git add -A
+          if git diff --cached --quiet; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "changed=true"  >> $GITHUB_OUTPUT
+          fi
+
+      # ---------- Optional offline sanity build (if wheelhouse/lock exist) ----------
+      - name: Setup Python
+        if: steps.diff.outputs.changed == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: "Offline install (if wheelhouse/lock present)"
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          set -e
+          if ls docs/vendor/wheels/*.whl >/dev/null 2>&1 && test -s docs/requirements.lock.txt; then
+            export PIP_NO_INDEX=1
+            export PIP_FIND_LINKS=docs/vendor/wheels
+            python -m pip install --no-index --find-links docs/vendor/wheels -r docs/requirements.lock.txt
+            mkdir -p docs/import
+            [ -f docs/import/index.md ] || printf '# Import (autogen)\n\nPlaceholder.\n' > docs/import/index.md
+            python -m mkdocs build --strict
+          else
+            echo "::notice ::No wheelhouse/lock on branch; skipping offline build but creating PR."
+          fi
+
+      - name: Create Pull Request
+        if: steps.diff.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: |
+            docs(sync): import docs from app/backend → docs/import/
+          title: "docs(sync): import from gtrack-app & gtrack-backend"
+          body: |
+            Automated sync of /docs from:
+            - ${{ env.APP_REPO }}
+            - ${{ env.BE_REPO }}
+
+            Includes only (*.md, *.yaml, *.yml, *.json, images).
+            Performed offline sanity build when wheelhouse/lock present.
+          labels: codex, docs, sync
+          signoff: true
+          branch: ci/docs-auto-sync
+          branch-suffix: timestamp
+          add-paths: |
+            docs/import/**
