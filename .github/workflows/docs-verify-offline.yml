@@ -39,19 +39,17 @@ jobs:
           python -m pip --version
           python -m pip install --no-index --find-links docs/vendor/wheels -r docs/requirements.lock.txt
 
-      - name: Ensure Import placeholder (strict-safe)
+      - name: "Ensure Import placeholder (strict-safe)"
         if: steps.guard.outputs.ready == 'true'
         run: |
           mkdir -p docs/import
           [ -f docs/import/index.md ] || printf '# Import (autogen)\n\nPlaceholder.\n' > docs/import/index.md
 
-      - name: Lint: forbid absolute links to root (except /spec/api/)
+      - name: "Lint: forbid absolute links to root (except /spec/api/)"
         run: |
           set -e
           echo "Scanning for absolute links…"
-          # Markdown-style: ](/something) except /spec/api/
           BAD_MD=$(grep -RnE '\]\(\/(?!spec\/api\/)' docs || true)
-          # HTML-style: href="/something" except /spec/api/
           BAD_HTML=$(grep -RnE 'href=\"\/(?!spec\/api\/)' docs || true)
           if [ -n "$BAD_MD$BAD_HTML" ]; then
             echo "$BAD_MD"

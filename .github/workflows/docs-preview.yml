@@ -53,7 +53,7 @@ jobs:
         if: steps.guard.outputs.ready == 'true'
         run: python -m mkdocs build --strict
 
-      - name: Skip (no wheelhouse/lock yet)
+      - name: Skip build until offline assets are present
         if: steps.guard.outputs.ready != 'true'
         shell: bash
         env:
