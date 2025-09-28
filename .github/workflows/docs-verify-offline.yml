@@ -58,7 +58,7 @@ jobs:
             exit 2
           fi
 
-      - name: Lint: Redoc pages must reference ../api in MD and ../../api in JS
+      - name: "Lint: Redoc pages must reference ../api in MD and ../../api in JS"
         run: |
           set -e
           for f in docs/spec/redoc/*.md; do
