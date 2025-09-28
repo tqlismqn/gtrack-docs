@@ -57,6 +57,12 @@ jobs:
             print("Missing modules:", missing); sys.exit(2)
           PY
 
+      - name: Ensure Import placeholder (strict-safe)
+        if: steps.guard.outputs.ready == 'true'
+        run: |
+          mkdir -p docs/import
+          [ -f docs/import/index.md ] || echo -e "# Import (autogen)\n\nPlaceholder, will be replaced by sync." > docs/import/index.md
+
       - name: Build docs (strict)
         if: steps.guard.outputs.ready == 'true'
         run: python -m mkdocs build --strict
