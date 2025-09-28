@@ -1,0 +1,2 @@
+- fix(demo): null-safe bindings + defer script + tab wiring
+- prevent runtime TypeError when some buttons are temporarily absent in markup
