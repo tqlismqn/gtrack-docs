@@ -67,18 +67,25 @@ jobs:
 
       - name: Summary (how to proceed)
         if: steps.guard.outputs.ready != 'true'
+        shell: bash
+        env:
+          REFRESH_URL: ${{ steps.dispatch.outputs.refresh_url }}
         run: |
           {
             echo "### 🔄 Запущен автосбор колёс (Docs - Refresh Wheels)"
-            echo ""
-            echo "- Открой ран: ${{ steps.dispatch.outputs.refresh_url }}"
+            echo
+            echo "- Открой ран: ${REFRESH_URL}"
             echo "- После завершения **смёрджи PR** “Docs: refresh wheelhouse & lock …”"
             echo "- Затем перезапусти этот workflow (**Re-run all jobs**) — деплой соберёт сайт офлайн."
-          } >> $GITHUB_STEP_SUMMARY
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Skip build until offline assets are present
         if: steps.guard.outputs.ready != 'true'
-        run: echo "Skipping deploy: wheels=${{ steps.guard.outputs.wheel_count }}, lock_size=${{ steps.guard.outputs.lock_size }} (main)"
+        shell: bash
+        env:
+          WHEELS: ${{ steps.guard.outputs.wheel_count }}
+          LOCK_SIZE: ${{ steps.guard.outputs.lock_size }}
+        run: echo "Skipping deploy: wheels=${WHEELS}, lock_size=${LOCK_SIZE} (main)"
 
       - name: Install docs deps (OFFLINE)
         if: steps.guard.outputs.ready == 'true'
