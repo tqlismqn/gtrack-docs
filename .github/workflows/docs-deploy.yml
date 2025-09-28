@@ -2,6 +2,11 @@ name: Docs - Deploy
 on:
   push:
     branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: "Why deploy?"
+        required: false
 permissions:
   contents: read
   pages: write
