@@ -27,5 +27,4 @@ nav:
   - Ops:
       - CI:
           - Offline PyPI: ops/CI/offline-pip.md
-  - Import:
-      - import/
+  - Import: import/index.md
