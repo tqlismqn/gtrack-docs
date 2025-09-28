@@ -64,13 +64,22 @@ jobs:
 
       - name: Sanity-check offline install & build
         run: |
+          set -euo pipefail
           python -m venv .venv
           . .venv/bin/activate
           pip install --no-index --find-links=docs/vendor/wheels -r docs/requirements.lock.txt
-          # --- ensure import placeholder exists (for strict builds) ---
+
+          # Ensure Import placeholder (strict-safe)
           mkdir -p docs/import
-          [ -f docs/import/index.md ] || echo -e "# Import (autogen)\n\nPlaceholder, will be replaced by sync." > docs/import/index.md
-          # -----------------------------------------------------------
+          if [ ! -f docs/import/index.md ]; then
+            cat > docs/import/index.md <<'MD'
+            # Import (autogen placeholder)
+
+            This page is created by CI to satisfy strict build while /docs/import is empty.
+            It will be replaced by synced content automatically.
+            MD
+          fi
+
           python - <<'PY'
           import mkdocs, material, mkdocs_awesome_pages_plugin, mkdocs_git_revision_date_localized_plugin
           print("mkdocs",   getattr(mkdocs, "__version__", "?"))
@@ -78,6 +87,7 @@ jobs:
           print("awesome-pages", getattr(mkdocs_awesome_pages_plugin, "__version__", "?"))
           print("git-date-localized", getattr(mkdocs_git_revision_date_localized_plugin, "__version__", "?"))
           PY
+
           python -m mkdocs build --strict
 
       - name: Configure git for Actions
