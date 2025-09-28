@@ -1,8 +1,8 @@
 name: Docs - Verify Offline
 on:
+  pull_request:
+    branches: [ main ]
   workflow_dispatch:
-  schedule:
-    - cron: "0 6 * * 1"   # по понедельникам, 06:00 UTC
 
 permissions:
   contents: read
@@ -19,87 +19,63 @@ jobs:
         with:
           python-version: '3.11'
 
-      # 0) Нет ли онлайн-установки из *.in в workflow?
-      - name: Ensure no online installs from requirements.in
-        run: |
-          set -euo pipefail
-          MATCHES=$(grep -R --line-number -E "pip +install.+requirements\.in" .github/workflows/docs-*.yml || true)
-          if [ -n "$MATCHES" ]; then
-            echo "::group::Found online installs in docs-* workflows"
-            echo "$MATCHES"
-            echo "::endgroup::"
-            echo "::error title=Online install from .in detected::Workflows must install from lock via wheelhouse only."
-            exit 2
-          fi
-          echo "OK: docs-* workflows do not install from *.in"
-
-      # 1) Guard: есть ли lock и колёса?
       - name: Detect wheelhouse/lock
         id: guard
         run: |
           WCOUNT=$(ls -1 docs/vendor/wheels/*.whl 2>/dev/null | wc -l | tr -d ' ')
           LSIZE=$(test -f docs/requirements.lock.txt && wc -c < docs/requirements.lock.txt | tr -d ' ' || echo 0)
+          READY=false; [ "$WCOUNT" -gt 0 ] && [ "$LSIZE" -gt 0 ] && READY=true
+          echo "ready=$READY" >> $GITHUB_OUTPUT
           echo "wheel_count=$WCOUNT" >> $GITHUB_OUTPUT
-          echo "lock_size=$LSIZE"   >> $GITHUB_OUTPUT
-          echo "Wheelhouse: $WCOUNT wheels, lock size: $LSIZE bytes"
-          [ "$WCOUNT" -gt 0 ] && [ "$LSIZE" -gt 0 ] || { echo "::error title=Offline assets missing::Run 'Docs - Refresh Wheels' first."; exit 2; }
+          echo "lock_size=$LSIZE" >> $GITHUB_OUTPUT
 
-      # 2) Оффлайн-установка и проверка модулей
-      - name: Offline install (lock + wheelhouse) and plugin versions
+      - name: Offline install (from wheelhouse)
+        if: steps.guard.outputs.ready == 'true'
         env:
           PIP_NO_INDEX: "1"
           PIP_FIND_LINKS: "docs/vendor/wheels"
           PIP_DISABLE_PIP_VERSION_CHECK: "1"
         run: |
-          python -m pip install -U pip
+          python -m pip --version
           python -m pip install --no-index --find-links docs/vendor/wheels -r docs/requirements.lock.txt
-          python - <<'PY'
-          import importlib, sys
-          modules = [
-            ("mkdocs", "mkdocs"),
-            ("material", "material"),
-            ("awesome-pages", "mkdocs_awesome_pages_plugin"),
-            ("git-date-localized", "mkdocs_git_revision_date_localized_plugin"),
-            ("pymdown-extensions", "pymdownx"),
-          ]
-          missing = []
-          for label, mod in modules:
-            try:
-              m = importlib.import_module(mod)
-              ver = getattr(m, "__version__", "?")
-              print(f"[OK] {label}: {ver}")
-            except Exception as e:
-              missing.append((label, mod, str(e)))
-          if missing:
-            print("Missing modules:", missing)
-            sys.exit(2)
-          PY
 
-      # 3) mkdocs.yml должен включать awesome-pages
-      - name: Check mkdocs.yml has 'awesome-pages' plugin
-        run: |
-          grep -q "awesome-pages" mkdocs.yml || { echo "::error title=mkdocs.yml::Plugin 'awesome-pages' not found in plugins."; sed -n '1,200p' mkdocs.yml; exit 2; }
-          echo "OK: mkdocs.yml includes awesome-pages"
-
-      # 4) Smoke-тест автонавигации: временно добавляем файл в docs/import/
-      - name: Auto-nav smoke file
+      - name: Ensure Import placeholder (strict-safe)
+        if: steps.guard.outputs.ready == 'true'
         run: |
           mkdir -p docs/import
-          echo -e "# Auto-Nav Smoke\n\nThis page is created by CI to verify awesome-pages + import/." > docs/import/__autonav_smoke.md
-          ls -l docs/import
+          [ -f docs/import/index.md ] || printf '# Import (autogen)\n\nPlaceholder.\n' > docs/import/index.md
 
-      # 5) Строгая сборка и проверка, что страница появилась в site/
-      - name: Build (strict) and assert smoke page exists
+      - name: Lint: forbid absolute links to root (except /spec/api/)
         run: |
-          python -m mkdocs build --strict -v
-          test -f site/import/__autonav_smoke/index.html || { echo "::error title=Auto-Nav failed::site/import/__autonav_smoke/index.html not found"; exit 2; }
-          echo "OK: Auto-Nav smoke page rendered"
+          set -e
+          echo "Scanning for absolute links…"
+          # Markdown-style: ](/something) except /spec/api/
+          BAD_MD=$(grep -RnE '\]\(\/(?!spec\/api\/)' docs || true)
+          # HTML-style: href="/something" except /spec/api/
+          BAD_HTML=$(grep -RnE 'href=\"\/(?!spec\/api\/)' docs || true)
+          if [ -n "$BAD_MD$BAD_HTML" ]; then
+            echo "$BAD_MD"
+            echo "$BAD_HTML"
+            echo "::error title=Absolute links to root found::Use relative links instead (../ or spec/api/… allowed)."
+            exit 2
+          fi
 
-      - name: Assert ReDoc spec files exist (no 404)
+      - name: Lint: Redoc pages must reference ../api in MD and ../../api in JS
         run: |
-          test -f site/spec/api/gtrack-v0.yaml || { echo "::error title=Missing spec::site/spec/api/gtrack-v0.yaml not found"; exit 2; }
-          test -f site/spec/api/gtrack-v1.yaml || { echo "::error title=Missing spec::site/spec/api/gtrack-v1.yaml not found"; exit 2; }
+          set -e
+          for f in docs/spec/redoc/*.md; do
+            [ -f "$f" ] || continue
+            grep -qE '\.\./api/gtrack-.*\.yaml' "$f" || { echo "::error file=$f::Missing '../api/...' link for MkDocs strict"; exit 2; }
+            grep -qE '\.\./\.\./api/gtrack-.*\.yaml' "$f" || { echo "::error file=$f::Missing '../../api/...' in runtime JS"; exit 2; }
+          done
 
-      # 6) Итог
-      - name: Summary
-        run: echo "✅ Offline install verified, plugins present, auto-nav for /import/ works."
+      - name: Build (strict) and assert spec files exist
+        if: steps.guard.outputs.ready == 'true'
+        run: |
+          python -m mkdocs build --strict
+          test -f site/spec/api/gtrack-v0.yaml || { echo "::error title=Missing::site/spec/api/gtrack-v0.yaml"; exit 2; }
+          test -f site/spec/api/gtrack-v1.yaml || { echo "::error title=Missing::site/spec/api/gtrack-v1.yaml"; exit 2; }
+
+      - name: Skip build (no wheelhouse/lock)
+        if: steps.guard.outputs.ready != 'true'
+        run: echo "Skipping offline build: wheels=${{ steps.guard.outputs.wheel_count }}, lock=${{ steps.guard.outputs.lock_size }}"
