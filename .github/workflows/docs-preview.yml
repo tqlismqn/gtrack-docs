@@ -53,10 +53,7 @@ jobs:
         if: steps.guard.outputs.ready == 'true'
         run: python -m mkdocs build --strict
 
-      - name: Skip build until offline assets are present
+      - name: "Skip build until offline assets are present"
         if: steps.guard.outputs.ready != 'true'
-        shell: bash
-        env:
-          WHEELS: ${{ steps.guard.outputs.wheel_count }}
-          LOCK: ${{ steps.guard.outputs.lock_size }}
-        run: echo "Skipping docs check: wheels=${WHEELS} lock=${LOCK}"
+        run: |
+          echo "Skipping docs check: wheels=${{ steps.guard.outputs.wheel_count }} lock=${{ steps.guard.outputs.lock_size }}"
