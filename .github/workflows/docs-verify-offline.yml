@@ -76,4 +76,5 @@ jobs:
 
       - name: Skip build (no wheelhouse/lock)
         if: steps.guard.outputs.ready != 'true'
-        run: echo "Skipping offline build: wheels=${{ steps.guard.outputs.wheel_count }}, lock=${{ steps.guard.outputs.lock_size }}"
+        run: |
+          echo "Skipping offline build: wheels=${{ steps.guard.outputs.wheel_count }} lock=${{ steps.guard.outputs.lock_size }}"
