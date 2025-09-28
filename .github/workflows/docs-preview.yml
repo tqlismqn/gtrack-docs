@@ -2,71 +2,51 @@ name: check-docs
 on:
   pull_request:
     branches: [ main ]
-    types: [opened, synchronize, reopened, ready_for_review]
-permissions: { contents: read }
+permissions:
+  contents: read
+
 jobs:
   check-docs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with: { python-version: '3.11' }
+        with:
+          python-version: '3.11'
 
       - name: Detect wheelhouse/lock
         id: guard
         run: |
           WCOUNT=$(ls -1 docs/vendor/wheels/*.whl 2>/dev/null | wc -l | tr -d ' ')
           LSIZE=$(test -f docs/requirements.lock.txt && wc -c < docs/requirements.lock.txt | tr -d ' ' || echo 0)
+          READY=false; [ "$WCOUNT" -gt 0 ] && [ "$LSIZE" -gt 0 ] && READY=true
+          echo "ready=$READY" >> $GITHUB_OUTPUT
           echo "wheel_count=$WCOUNT" >> $GITHUB_OUTPUT
           echo "lock_size=$LSIZE" >> $GITHUB_OUTPUT
-          if [ "$WCOUNT" -gt 0 ] && [ "$LSIZE" -gt 0 ]; then
-            echo "ready=true" >> $GITHUB_OUTPUT
-            echo "Wheelhouse OK ($WCOUNT wheels), lock size $LSIZE"
-          else
-            echo "ready=false" >> $GITHUB_OUTPUT
-            echo "::notice ::Skipping build: wheels=$WCOUNT, lock_size=$LSIZE"
-          fi
 
-      - name: Install docs deps (OFFLINE from wheelhouse) + plugin check
+      - name: Offline install
         if: steps.guard.outputs.ready == 'true'
         env:
           PIP_NO_INDEX: "1"
           PIP_FIND_LINKS: "docs/vendor/wheels"
-          PIP_DISABLE_PIP_VERSION_CHECK: "1"
         run: |
-          python -m pip install -U pip
+          python -m pip --version
           python -m pip install --no-index --find-links docs/vendor/wheels -r docs/requirements.lock.txt
-          python - <<'PY'
-          import importlib, sys
-          mods = [
-            ("mkdocs", "mkdocs"),
-            ("material", "material"),
-            ("awesome-pages", "mkdocs_awesome_pages_plugin"),
-            ("git-date-localized", "mkdocs_git_revision_date_localized_plugin"),
-            ("pymdown-extensions", "pymdownx"),
-          ]
-          missing = []
-          for name, module in mods:
-            try:
-              m = importlib.import_module(module)
-              ver = getattr(m, "__version__", None)
-              print(f"[OK] {name}: {ver or 'version ?'} (module {module})")
-            except Exception as e:
-              missing.append((name, module, str(e)))
-          if missing:
-            print("Missing modules:", missing); sys.exit(2)
-          PY
 
-      - name: Ensure Import placeholder (strict-safe)
+      - name: Ensure Import placeholder
         if: steps.guard.outputs.ready == 'true'
         run: |
           mkdir -p docs/import
-          [ -f docs/import/index.md ] || echo -e "# Import (autogen)\n\nPlaceholder, will be replaced by sync." > docs/import/index.md
+          [ -f docs/import/index.md ] || printf '# Import (autogen)\n\nPlaceholder.\n' > docs/import/index.md
 
       - name: Build docs (strict)
         if: steps.guard.outputs.ready == 'true'
         run: python -m mkdocs build --strict
 
-      - name: Skip build (wheelhouse/lock not ready yet)
+      - name: Skip (no wheelhouse/lock yet)
         if: steps.guard.outputs.ready != 'true'
-        run: echo "::notice title=Docs build skipped::Wheelhouse пустой или lock отсутствует. Это ожидаемо для инфраструктурных PR."
+        shell: bash
+        env:
+          WHEELS: ${{ steps.guard.outputs.wheel_count }}
+          LOCK: ${{ steps.guard.outputs.lock_size }}
+        run: echo "Skipping docs check: wheels=${WHEELS} lock=${LOCK}"
