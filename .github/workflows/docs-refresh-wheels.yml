@@ -72,12 +72,12 @@ jobs:
           # Ensure Import placeholder (strict-safe)
           mkdir -p docs/import
           if [ ! -f docs/import/index.md ]; then
-            cat > docs/import/index.md <<'MD'
-            # Import (autogen placeholder)
+cat > docs/import/index.md <<'EOF'
+# Import (autogen placeholder)
 
-            This page is created by CI to satisfy strict build while /docs/import is empty.
-            It will be replaced by synced content automatically.
-            MD
+This page is created by CI to satisfy strict build while /docs/import is empty.
+It will be replaced by synced content automatically.
+EOF
           fi
 
           python - <<'PY'
