@@ -3,7 +3,6 @@ on:
   push:
     branches: [ main ]
 permissions:
-  actions: write
   contents: read
   pages: write
   id-token: write
@@ -18,99 +17,35 @@ jobs:
     outputs:
       ready: ${{ steps.guard.outputs.ready }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Detect wheelhouse/lock (strict for main)
+      - name: Detect wheelhouse/lock
         id: guard
         run: |
           WCOUNT=$(ls -1 docs/vendor/wheels/*.whl 2>/dev/null | wc -l | tr -d ' ')
           LSIZE=$(test -f docs/requirements.lock.txt && wc -c < docs/requirements.lock.txt | tr -d ' ' || echo 0)
+          READY=false; [ "$WCOUNT" -gt 0 ] && [ "$LSIZE" -gt 0 ] && READY=true
+          echo "ready=$READY" >> $GITHUB_OUTPUT
           echo "wheel_count=$WCOUNT" >> $GITHUB_OUTPUT
-          echo "lock_size=$LSIZE"   >> $GITHUB_OUTPUT
-          if [ "$WCOUNT" -gt 0 ] && [ "$LSIZE" -gt 0 ]; then
-            echo "ready=true" >> $GITHUB_OUTPUT
-            echo "Wheelhouse OK ($WCOUNT wheels), lock size $LSIZE"
-          else
-            echo "ready=false" >> $GITHUB_OUTPUT
-            echo "::notice ::Offline assets missing on main (wheels=$WCOUNT, lock_size=$LSIZE). Will dispatch 'Docs - Refresh Wheels' and skip this deploy."
-          fi
+          echo "lock_size=$LSIZE" >> $GITHUB_OUTPUT
 
-      - name: Auto-dispatch 'Docs - Refresh Wheels' (if missing)
-        if: steps.guard.outputs.ready != 'true'
-        id: dispatch
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const {owner, repo} = context.repo;
-            await github.rest.actions.createWorkflowDispatch({
-              owner, repo,
-              workflow_id: "docs-refresh-wheels.yml",
-              ref: "main",
-              inputs: { python: "3.11" }
-            });
-            // найдём самый свежий ран этого workflow для ссылки в summary
-            const runs = await github.rest.actions.listWorkflowRuns({
-              owner, repo,
-              workflow_id: "docs-refresh-wheels.yml",
-              per_page: 1,
-              status: "in_progress"
-            });
-            let url = runs.data.workflow_runs?.[0]?.html_url || `https://github.com/${owner}/${repo}/actions/workflows/docs-refresh-wheels.yml`;
-            core.setOutput("refresh_url", url);
-        continue-on-error: true
-
-      - name: Summary (how to proceed)
-        if: steps.guard.outputs.ready != 'true'
-        shell: bash
-        env:
-          REFRESH_URL: ${{ steps.dispatch.outputs.refresh_url }}
-        run: |
-          {
-            echo "### 🔄 Запущен автосбор колёс (Docs - Refresh Wheels)"
-            echo
-            echo "- Открой ран: ${REFRESH_URL}"
-            echo "- После завершения **смёрджи PR** “Docs: refresh wheelhouse & lock …”"
-            echo "- Затем перезапусти этот workflow (**Re-run all jobs**) — деплой соберёт сайт офлайн."
-          } >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Skip build until offline assets are present
-        if: steps.guard.outputs.ready != 'true'
-        shell: bash
-        env:
-          WHEELS: ${{ steps.guard.outputs.wheel_count }}
-          LOCK_SIZE: ${{ steps.guard.outputs.lock_size }}
-        run: echo "Skipping deploy: wheels=${WHEELS}, lock_size=${LOCK_SIZE} (main)"
-
-      - name: Install docs deps (OFFLINE)
+      - name: Offline install
         if: steps.guard.outputs.ready == 'true'
         env:
           PIP_NO_INDEX: "1"
           PIP_FIND_LINKS: "docs/vendor/wheels"
-          PIP_DISABLE_PIP_VERSION_CHECK: "1"
         run: |
           python -m pip --version
           python -m pip install --no-index --find-links docs/vendor/wheels -r docs/requirements.lock.txt
-          python - <<'PY'
-          import mkdocs, material
-          import mkdocs_awesome_pages_plugin as ap
-          import mkdocs_git_revision_date_localized_plugin as gdl
-          print("mkdocs",   getattr(mkdocs, "__version__", "?"))
-          print("material", getattr(material, "__version__", "?"))
-          print("awesome-pages", getattr(ap, "__version__", "?"))
-          print("git-date-localized", getattr(gdl, "__version__", "?"))
-          PY
 
-      - name: Ensure Import placeholder (strict-safe)
+      - name: Ensure Import placeholder
         if: steps.guard.outputs.ready == 'true'
         run: |
           mkdir -p docs/import
-          [ -f docs/import/index.md ] || echo -e "# Import (autogen)\n\nPlaceholder, will be replaced by sync." > docs/import/index.md
+          [ -f docs/import/index.md ] || printf '# Import (autogen)\n\nPlaceholder.\n' > docs/import/index.md
 
       - name: Build (strict)
         if: steps.guard.outputs.ready == 'true'

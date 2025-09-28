@@ -1,13 +1,13 @@
-# Core (MkDocs + theme)
-mkdocs>=1.5,<2
+# MkDocs + theme
+mkdocs>=1.6,<2
 mkdocs-material>=9.5,<10
 
-# Plugins (explicit pin for wheel-friendly version)
+# Plugins
 mkdocs-awesome-pages-plugin==2.9.2
 mkdocs-git-revision-date-localized-plugin>=1.2,<2
 
-# Markdown extensions
+# Markdown
 pymdown-extensions>=10.7,<11
 
-# Tooling (safe)
+# Tooling
 click>=8,<9

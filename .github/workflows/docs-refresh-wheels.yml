@@ -7,7 +7,7 @@ on:
         required: false
         default: "3.11"
   schedule:
-    - cron: "0 6 1 * *"   # monthly
+    - cron: "0 6 1 * *"   # ежемесячно
 
 permissions:
   contents: write
@@ -17,23 +17,18 @@ jobs:
   refresh:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout (full)
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          persist-credentials: true
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ github.event.inputs.python || '3.11' }}
 
       - name: Upgrade pip tooling
-        run: python -m pip install -U pip wheel pip-tools
+        run: python -m pip install -U pip pip-tools wheel
 
-      - name: Validate inputs
+      - name: Ensure inputs/dirs
         run: |
-          set -euo pipefail
           test -f docs/requirements.in || { echo "::error file=docs/requirements.in::Missing docs/requirements.in"; exit 2; }
           mkdir -p docs/vendor/wheels
 
@@ -43,78 +38,41 @@ jobs:
             --resolver=backtracking \
             --generate-hashes \
             --allow-unsafe \
-            --output-file docs/requirements.lock.txt docs/requirements.in
+            -o docs/requirements.lock.txt docs/requirements.in
           sed -n '1,120p' docs/requirements.lock.txt
-
-      - name: Bootstrap build tools into wheelhouse
-        run: |
-          python -m pip download --only-binary=:all: -d docs/vendor/wheels setuptools wheel
 
       - name: Download wheels (prefer wheels; fallback to sdist)
         run: |
           set -euxo pipefail
-          if python -m pip download --only-binary=:all: --require-hashes \
-               -r docs/requirements.lock.txt -d docs/vendor/wheels; then
-            echo "Pure wheels ok."
-          else
-            echo "::warning title=Wheel missing::Falling back to sdist for some packages"
-            python -m pip download -r docs/requirements.lock.txt -d docs/vendor/wheels
-          fi
+          python -m pip download --only-binary=:all: --require-hashes \
+            -r docs/requirements.lock.txt -d docs/vendor/wheels || \
+          python -m pip download -r docs/requirements.lock.txt -d docs/vendor/wheels
           ls -1 docs/vendor/wheels | head -n 80
 
-      - name: Sanity-check offline install & build
+      - name: Offline sanity build (no heredoc)
         run: |
-          set -euo pipefail
+          set -euxo pipefail
           python -m venv .venv
           . .venv/bin/activate
           pip install --no-index --find-links=docs/vendor/wheels -r docs/requirements.lock.txt
-
-          # Ensure Import placeholder (strict-safe)
           mkdir -p docs/import
-          if [ ! -f docs/import/index.md ]; then
-cat > docs/import/index.md <<'EOF'
-# Import (autogen placeholder)
-
-This page is created by CI to satisfy strict build while /docs/import is empty.
-It will be replaced by synced content automatically.
-EOF
-          fi
-
-          python - <<'PY'
-          import mkdocs, material, mkdocs_awesome_pages_plugin, mkdocs_git_revision_date_localized_plugin
-          print("mkdocs",   getattr(mkdocs, "__version__", "?"))
-          print("material", getattr(material, "__version__", "?"))
-          print("awesome-pages", getattr(mkdocs_awesome_pages_plugin, "__version__", "?"))
-          print("git-date-localized", getattr(mkdocs_git_revision_date_localized_plugin, "__version__", "?"))
-          PY
-
+          [ -f docs/import/index.md ] || printf '# Import (autogen)\n\nPlaceholder; will be replaced by sync.\n' > docs/import/index.md
           python -m mkdocs build --strict
-
-      - name: Configure git for Actions
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git config --global user.name  "github-actions[bot]"
-          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          branch: "codex/docs-refresh-wheels"
+          branch: "ci/docs-refresh-wheels"
           branch-suffix: timestamp
           add-paths: |
             docs/requirements.lock.txt
             docs/vendor/wheels/**
           signoff: true
-          commit-message: |
-            docs(ci): refresh wheelhouse & lock for offline PyPI
-
-            Docs updated.
           title: "Docs: refresh wheelhouse & lock (offline PyPI)"
+          commit-message: |
+            docs(ci): refresh wheelhouse & lock (offline)
           body: |
-            - Updated `docs/requirements.lock.txt` (pip-tools with hashes)
-            - Downloaded wheels to `docs/vendor/wheels/` (+ setuptools, wheel)
-            - Verified offline install and `python -m mkdocs build --strict`
+            - Updated lockfile (pip-tools with hashes)
+            - Downloaded wheels to docs/vendor/wheels
+            - Verified offline mkdocs build (--strict)

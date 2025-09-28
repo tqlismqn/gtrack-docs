@@ -1,2 +1,2 @@
-# Do not install from *.in in CI. Always use the lockfile:
+# Always install docs deps from the lockfile
 -r docs/requirements.lock.txt
