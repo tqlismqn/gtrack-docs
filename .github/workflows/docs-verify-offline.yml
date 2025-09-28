@@ -95,6 +95,11 @@ jobs:
           test -f site/import/__autonav_smoke/index.html || { echo "::error title=Auto-Nav failed::site/import/__autonav_smoke/index.html not found"; exit 2; }
           echo "OK: Auto-Nav smoke page rendered"
 
+      - name: Assert ReDoc spec files exist (no 404)
+        run: |
+          test -f site/spec/api/gtrack-v0.yaml || { echo "::error title=Missing spec::site/spec/api/gtrack-v0.yaml not found"; exit 2; }
+          test -f site/spec/api/gtrack-v1.yaml || { echo "::error title=Missing spec::site/spec/api/gtrack-v1.yaml not found"; exit 2; }
+
       # 6) Итог
       - name: Summary
         run: echo "✅ Offline install verified, plugins present, auto-nav for /import/ works."
