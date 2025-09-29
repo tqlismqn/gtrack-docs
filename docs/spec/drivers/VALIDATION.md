@@ -2,36 +2,33 @@
 
 ## Общие принципы
 
-- Форматы дат: ISO в API; UI/импорт `DD.MM.YYYY` / `DD.MM.YYYY HH:mm`.
-- Уникальность в пределах арендатора: `driverNumber`, `code` (если задан).
+* ISO в API; UI/импорт: `DD.MM.YYYY` / `DD.MM.YYYY HH:mm`
+* Уникальность в тенанте: `driverNumber`, `code` (если задан)
 
-## Driver — ключевые правила
+## Driver
 
-- `driverNumber`: `^DRV\d{6}$` (генерируется системой).
-- `code`: `^[A-Z0-9][A-Z0-9_-]{1,31}$`; уникален, если указан.
-- `dateOfBirth`: обязательна, возраст ≥ 18 лет.
-- Контакты: `emails[]`, `phones[]` ≤ 3; максимум один `isPrimary=true` в каждом списке.
-- Банкинг: наборы полей для CZ vs non-CZ взаимоисключающие.
-- Employment: если `payrollEnabled=true` → обязательный блок `payrollSettings`.
+* `driverNumber`: `^DRV\d{6}$`
+* `code`: `^[A-Z0-9][A-Z0-9_-]{1,31}$`
+* `dateOfBirth`: обяз., возраст ≥ 18
+* Contacts: e-mail/телефон ≤ 3, максимум один primary
+* Banking: CZ vs non-CZ — взаимоисключающие наборы
+* Employment: если `payrollEnabled=true` → обязателен блок `payrollSettings`
 
-## Documents — общие правила
+## Document
 
-- `type` из разрешенного списка; `state` из `pending_approval|valid|expired|rejected`.
-- `expiryDate ≥ issueDate` (если обе даты заданы).
-- Типоспецифичные правила — см. таблицу в `DATA_MODEL.md` (повтор: `passport`, `driver_license`, ...).
-- `source = driver_bot` не может переводить `state` в `valid`.
+* `type`: из списка; `state`: `pending_approval|valid|expired|rejected`
+* `expiryDate >= issueDate` (если обе заданы)
+* Типоспецифичные правила (см. Data Model 3.2)
+* `source=driver_bot` не может выставить `state=valid`
 
 ## Attachment
 
-- MIME из белого списка.
-- Размер ≤ 15 MB.
+* MIME: pdf/jpg/png/heic; size ≤ 15 MB
 
 ## Кросс-проверки
 
-- EU/non-EU + валидный `visa_work_permit` → влияет на `Compliance`.
-- При `suspended` запрет на новые `Assignment` (кроме override).
+* EU/non-EU + `visa_work_permit`; `suspended` блокирует новые `Assignment` (кроме override)
 
-## Ошибки — примеры
+## Примеры ошибок
 
-- `PLAN_LIMIT_EXCEEDED`, `FORBIDDEN_FEATURE` — зарезервированы для Billing (Phase B).
-- См. раздел примеров (JSON-фрагменты) в шаге 6 спецификации.
+* см. JSON-примеры из основного обсуждения (VALIDATION шага)

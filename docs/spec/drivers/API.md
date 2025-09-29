@@ -39,60 +39,23 @@
 ```
 
 ## GET `/drivers/{id}`
-**Параметры**: `include` (как выше). RBAC/маски — такие же правила, что и на списке.
 
-**200 OK (фрагмент)**
-```json
-{
-  "id": "01J9…",
-  "driverNumber": "DRV000123",
-  "code": "EMP-2025-042",
-  "person": {
-    "firstName": "Ivan",
-    "lastName": "Petrov",
-    "dateOfBirth": "1989-12-04"
-  },
-  "employment": {
-    "employmentType": "employee",
-    "hiredOn": "2024-06-01",
-    "payrollEnabled": true
-  },
-  "compliance": {
-    "status": "active",
-    "nextExpiryOn": "2025-11-30",
-    "hasBlockingIssues": false
-  },
-  "documents": [
-    {
-      "type": "driver_license",
-      "state": "valid",
-      "expiryDate": "2031-03-01",
-      "categories": ["C", "CE"],
-      "expiring": false,
-      "daysToExpiry": 1980
-    }
-  ]
-}
-```
+**Query:** `include=documents,assignments,notes` (RBAC/маски применяются)
 
-## GET `/drivers/{id}/audit-log`
-- Параметры: `page`, `limit`, `eventTypes[]`
-- Возвращает события с учетом retention 5 лет и Legal Hold
-- В payload не возвращаем чувствительные поля (маскирование, ссылки на blob-хранилище)
+**200 OK (фрагмент)** — полный профиль водителя с маскированием по роли (см. VALIDATION/RBAC)
 
-## GET `/drivers/{id}/access-requests`
-- Возвращает активные и исторические AccessRequest (для HR/admin)
-- Фильтры: `activeOnly`
+## Единый формат ошибок (пример)
 
-## Формат ошибок
 ```json
 {
   "error": {
-    "code": "VALIDATION_ERROR|NOT_FOUND|FORBIDDEN|CONFLICT|INTERNAL",
-    "message": "…",
-    "details": { "fieldErrors": [ { "field": "…", "reason": "…" } ] },
+    "code": "VALIDATION_ERROR",
+    "message": "Invalid query parameters.",
+    "details": {"fieldErrors":[{"field":"limit","reason":"out_of_range","expected":"1..200","actual":250}]},
     "requestId": "01REQ…",
     "timestamp": "2025-09-29T19:20:10Z"
   }
 }
 ```
+
+**Design notes:** пороги уведомлений per-type влияют на `documents[].expiring`, но не на фильтр `expiringWithinDays`.
