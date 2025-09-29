@@ -6,6 +6,14 @@
 - UI: расширена ширина макета (1400px), ReDoc-страницы без правого TOC.
 - Навигация: возвращены API v0 (Health, Водители); добавлен раздел Imported.
 
+## docs-v2.9.0 (ASSUMPTION) — Drivers Module v0.1
+- NEW: `docs/spec/drivers/DATA_MODEL.md` — модель данных Driver/Document/Attachment/... (GDPR, retention, Telegram-бот, нотификации).
+- NEW: `docs/spec/drivers/API.md` — REST v0: `GET /drivers`, `GET /drivers/{id}` (фильтры/сортировка/пагинация/include).
+- NEW: `docs/spec/drivers/VALIDATION.md` — правила валидации, примеры ошибок.
+- NEW: `docs/spec/drivers/RBAC.md` — роли, маскирование, Multi-Role & Groups, AccessRequest.
+- NEW: `docs/spec/drivers/OPEN_QUESTIONS_AND_ASSUMPTIONS.md`.
+- NOTE: Phase B Billing/Trial — черновик спецификаций (будет вынесен в отдельную страницу).
+
 ## docs-vX.Y.(Z+1) — 2025-09-24
 - Fix: ReDoc loads spec via absolute URL; v0 YAML replaced with clean, backend-aligned version (UTF-8).
 
