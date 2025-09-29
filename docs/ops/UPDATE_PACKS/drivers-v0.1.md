@@ -1,23 +1,26 @@
 # Update Pack — Drivers Module v0.1
 
-## Новые страницы
+## Изменения
 
-* [`Data Model`](../../spec/drivers/DATA_MODEL.md)
-* [`API v0`](../../spec/drivers/API.md)
-* [`Validation`](../../spec/drivers/VALIDATION.md)
-* [`RBAC`](../../spec/drivers/RBAC.md)
-* [`Open Questions & Assumptions`](../../spec/drivers/OPEN_QUESTIONS_AND_ASSUMPTIONS.md)
+* Добавлены страницы спецификаций драйвер-модуля:
+
+  * [`DATA_MODEL`](../../spec/drivers/DATA_MODEL.md)
+  * [`API`](../../spec/drivers/API.md)
+  * [`VALIDATION`](../../spec/drivers/VALIDATION.md)
+  * [`RBAC`](../../spec/drivers/RBAC.md)
+  * [`OPEN_QUESTIONS_AND_ASSUMPTIONS`](../../spec/drivers/OPEN_QUESTIONS_AND_ASSUMPTIONS.md)
 
 ## Влияние
 
-* Требуются изменения в бэкенде/фронтенде для RBAC/масок и расчёта Compliance
-* Импорт/экспорт — зафиксирован формат (реализация в приложении)
+* Реализация API чтения: `GET /drivers`, `GET /drivers/{id}`
+* Подготовка импорт/экспорт шаблонов (будет реализовано в приложении)
+* Роли и маскирование — требуются в бэкенде/фронтенде для корректной видимости
 
-## Проверки
+## Тесты/проверки
 
-* `mkdocs build --strict`
-* Внутренние ссылки
+* `mkdocs build --strict` должен проходить
+* Проверить внутренние ссылки и таблицы
 
-## Post-merge
+## Post-merge действия
 
-* Тег: `DOCS_VERSION`
+* Проставить git-тег: `docs-v2.9.0` *(или актуальную версию)*

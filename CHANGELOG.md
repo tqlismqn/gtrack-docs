@@ -2,6 +2,14 @@
 
 Все заметные изменения в документации фиксируются в этом файле.
 
+### **docs-v2.9.0** — Drivers Module v0.1
+
+* NEW: `docs/spec/drivers/DATA_MODEL.md` — модель данных Driver/Document/Attachment/… (GDPR, retention, нотификации)
+* NEW: `docs/spec/drivers/API.md` — REST v0: `GET /drivers`, `GET /drivers/{id}` (фильтры/сорт/пагинация/`include`)
+* NEW: `docs/spec/drivers/VALIDATION.md` — правила валидации, примеры
+* NEW: `docs/spec/drivers/RBAC.md` — роли, маскирование, AccessRequest
+* NEW: `docs/spec/drivers/OPEN_QUESTIONS_AND_ASSUMPTIONS.md`
+
 ## docs-vX.Y.(Z+1) — <YYYY-MM-DD>
 - UI: расширена ширина макета (1400px), ReDoc-страницы без правого TOC.
 - Навигация: возвращены API v0 (Health, Водители); добавлен раздел Imported.
