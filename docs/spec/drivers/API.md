@@ -3,59 +3,44 @@
 База: `/api/v0`
 
 ## Общие
-- Даты/время: ISO-8601 в API; UI/импорт — `DD.MM.YYYY` / 24h
-- Идентификаторы: ULID; маскирование — по RBAC
-- Ошибки: единый формат (`VALIDATION_ERROR`, `NOT_FOUND`, `FORBIDDEN`, `CONFLICT`, `INTERNAL`)
+- Форматы дат: **ISO-8601** в API; UI/импорт — `DD.MM.YYYY` (конвертация на сервере)
+- Идентификаторы: ULID; маскирование полей — по RBAC
+- Ошибки: единый формат (см. ниже)
 
 ## GET `/drivers`
-**Параметры**: 
-- `page`, `limit`, `search`, `status`, `hasBlockingIssues`, `tags`, `language`, `euResident`, `adrRequired`, 
-- `documentType`, `documentState`, 
-- `expiringWithinDays`, 
-- `sort`, `order`, 
-- `include` (`documents,assignments,notes`).
+**Параметры**
+- `page` (int≥1=1), `limit` (1..200=25)
+- `search` (по driverNumber, code, ФИО)
+- `status` (`draft|active|suspended|archived`), `hasBlockingIssues` (bool)
+- `tags`, `language` (ISO 639-1)
+- `euResident` (bool — по `nationality`/`nationalities` пересечению с EU)
+- `adrRequired` (bool)
+- `documentType`, `documentState` (`pending_approval|valid|expired|rejected` — действует только с `documentType`)
+- `expiringWithinDays` (int≥0)
+- `sort` (`driverNumber|lastName|status|nextExpiryOn|createdAt`), `order` (`asc|desc`)
+- `include` (`documents,assignments,notes`)
 
-**200 OK (фрагмент)**
-```json
-{
-  "page": 1,
-  "limit": 50,
-  "total": 123,
-  "items": [
-    {
-      "id": "01J9…",
-      "driverNumber": "DRV000123",
-      "code": "EMP-2025-042",
-      "person": {"firstName":"Ivan","lastName":"Petrov","dateOfBirth":"1989-12-04"},
-      "rolesTags": {"tags":["ADR"],"languages":["cs","en","ru"]},
-      "employment": {"employmentType":"employee","hiredOn":"2024-06-01","payrollEnabled":true},
-      "compliance": {"status":"active","nextExpiryOn":"2025-11-30","hasBlockingIssues":false},
-      "documents": [
-        {"type":"driver_license","state":"valid","expiryDate":"2031-03-01","categories":["C","CE"],"expiring":false,"daysToExpiry":1980}
-      ]
-    }
-  ]
-}
-```
+**200 OK (фрагмент)** — см. пример в VALIDATION
 
 ## GET `/drivers/{id}`
+- `id`: ULID; `include` как выше
+- Возвращает полную карточку с учетом RBAC/масок
 
-**Query:** `include=documents,assignments,notes` (RBAC/маски применяются)
-
-**200 OK (фрагмент)** — полный профиль водителя с маскированием по роли (см. VALIDATION/RBAC)
-
-## Единый формат ошибок (пример)
-
+## Формат ошибок
 ```json
 {
   "error": {
-    "code": "VALIDATION_ERROR",
-    "message": "Invalid query parameters.",
-    "details": {"fieldErrors":[{"field":"limit","reason":"out_of_range","expected":"1..200","actual":250}]},
+    "code": "VALIDATION_ERROR|NOT_FOUND|FORBIDDEN|CONFLICT|INTERNAL",
+    "message": "…",
+    "details": { "fieldErrors": [ { "field": "…", "reason": "…" } ] },
     "requestId": "01REQ…",
     "timestamp": "2025-09-29T19:20:10Z"
   }
 }
 ```
 
-**Design notes:** пороги уведомлений per-type влияют на `documents[].expiring`, но не на фильтр `expiringWithinDays`.
+**Design notes**
+
+* Пороги и включённость нотификаций настраиваются per-type и влияют на признак `expiring`, но не на фильтр `expiringWithinDays` (он использует фактические даты)
+
+---
