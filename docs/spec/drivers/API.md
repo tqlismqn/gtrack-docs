@@ -1,44 +1,90 @@
 # Модуль «Водители (Driver)» — API v0 (GET-only)
 
-## База
+База: `/api/v0`
 
-- Префикс: `/api/v0`.
-- Форматы дат: ISO-8601 в API; UI/импорт — `DD.MM.YYYY` (конвертация на сервере).
-- Идентификаторы: ULID; маскирование полей — по `RBAC.md`.
-- Ошибки: единый формат (см. ниже).
+## Общие
+- Даты/время: ISO-8601 в API; UI/импорт — `DD.MM.YYYY` / 24h
+- Идентификаторы: ULID; маскирование — по RBAC
+- Ошибки: единый формат (`VALIDATION_ERROR`, `NOT_FOUND`, `FORBIDDEN`, `CONFLICT`, `INTERNAL`)
 
-## GET /drivers
+## GET `/drivers`
+**Параметры**: 
+- `page`, `limit`, `search`, `status`, `hasBlockingIssues`, `tags`, `language`, `euResident`, `adrRequired`, 
+- `documentType`, `documentState`, 
+- `expiringWithinDays`, 
+- `sort`, `order`, 
+- `include` (`documents,assignments,notes`).
 
-### Параметры
+**200 OK (фрагмент)**
+```json
+{
+  "page": 1,
+  "limit": 50,
+  "total": 123,
+  "items": [
+    {
+      "id": "01J9…",
+      "driverNumber": "DRV000123",
+      "code": "EMP-2025-042",
+      "person": {"firstName":"Ivan","lastName":"Petrov","dateOfBirth":"1989-12-04"},
+      "rolesTags": {"tags":["ADR"],"languages":["cs","en","ru"]},
+      "employment": {"employmentType":"employee","hiredOn":"2024-06-01","payrollEnabled":true},
+      "compliance": {"status":"active","nextExpiryOn":"2025-11-30","hasBlockingIssues":false},
+      "documents": [
+        {"type":"driver_license","state":"valid","expiryDate":"2031-03-01","categories":["C","CE"],"expiring":false,"daysToExpiry":1980}
+      ]
+    }
+  ]
+}
+```
 
-- `page` (`int ≥ 1`, по умолчанию `1`).
-- `limit` (`1..200`, по умолчанию `25`).
-- `search` (по `driverNumber`, `code`, ФИО).
-- `status` (`draft|active|suspended|archived`).
-- `hasBlockingIssues` (`bool`).
-- `tags` (множественный фильтр).
-- `language` (ISO 639-1).
-- `euResident` (`bool` — определяется по пересечению `nationality`/`nationalities` с EU).
-- `adrRequired` (`bool`).
-- `documentType`.
-- `documentState` (`pending_approval|valid|expired|rejected`, действует только совместно с `documentType`).
-- `expiringWithinDays` (`int ≥ 0`).
-- `sort` (`driverNumber|lastName|status|nextExpiryOn|createdAt`).
-- `order` (`asc|desc`).
-- `include` (`documents`, `assignments`, `notes`).
+## GET `/drivers/{id}`
+**Параметры**: `include` (как выше). RBAC/маски — такие же правила, что и на списке.
 
-### Ответ 200 OK (фрагмент)
+**200 OK (фрагмент)**
+```json
+{
+  "id": "01J9…",
+  "driverNumber": "DRV000123",
+  "code": "EMP-2025-042",
+  "person": {
+    "firstName": "Ivan",
+    "lastName": "Petrov",
+    "dateOfBirth": "1989-12-04"
+  },
+  "employment": {
+    "employmentType": "employee",
+    "hiredOn": "2024-06-01",
+    "payrollEnabled": true
+  },
+  "compliance": {
+    "status": "active",
+    "nextExpiryOn": "2025-11-30",
+    "hasBlockingIssues": false
+  },
+  "documents": [
+    {
+      "type": "driver_license",
+      "state": "valid",
+      "expiryDate": "2031-03-01",
+      "categories": ["C", "CE"],
+      "expiring": false,
+      "daysToExpiry": 1980
+    }
+  ]
+}
+```
 
-См. пример в разделе 5; включает `documents[].expiring` и `daysToExpiry` (вычисляемые поля).
+## GET `/drivers/{id}/audit-log`
+- Параметры: `page`, `limit`, `eventTypes[]`
+- Возвращает события с учетом retention 5 лет и Legal Hold
+- В payload не возвращаем чувствительные поля (маскирование, ссылки на blob-хранилище)
 
-## GET /drivers/{id}
-
-- `id`: ULID.
-- `include` как выше.
-- Возвращает полную карточку с учетом RBAC/масок.
+## GET `/drivers/{id}/access-requests`
+- Возвращает активные и исторические AccessRequest (для HR/admin)
+- Фильтры: `activeOnly`
 
 ## Формат ошибок
-
 ```json
 {
   "error": {
@@ -50,9 +96,3 @@
   }
 }
 ```
-
-Примеры ошибок см. `VALIDATION.md`.
-
-## Design notes
-
-- Нотификационные пороги/включённость настраиваются в админке per-тип и влияют на признак `expiring`, но не на фильтр `expiringWithinDays` (тот использует фактические даты).
