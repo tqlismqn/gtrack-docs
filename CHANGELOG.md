@@ -2,6 +2,12 @@
 
 Все заметные изменения в документации фиксируются в этом файле.
 
+### docs-v2.9.1 — Drivers: Audit & Notifications
+
+* NEW: `spec/drivers/AUDIT_AND_NOTIFICATIONS.md` — модель аудита, каналы уведомлений, настройки, триггеры, weekly report.
+* NAV: добавлена ссылка в раздел Drivers (.pages).
+* PACK: обновлён Update Pack `drivers-v0.1`.
+
 ### **docs-v2.9.0** — Drivers Module v0.1
 
 * NEW: `docs/spec/drivers/DATA_MODEL.md` — модель данных Driver/Document/Attachment/… (GDPR, retention, нотификации)
