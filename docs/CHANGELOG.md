@@ -1,5 +1,11 @@
 # Документация — Changelog
 
+## docs-v2.9.0 — 2025-10-03
+- ADR-STACK-0001: переход на Angular 17 + Laravel 10 + PostgreSQL 16
+- Обновлены SPEC: DATA_MODEL, API, UX
+- Обновлены OPS: ENV_MATRIX, CI_CD, DEPLOYMENT, DOMAINS_DNS
+- Добавлены домены api.g-track.eu и app.g-track.eu
+
 ## docs-v2.8.3 — Enforce offline install + awesome-pages check
 - CI: офлайн только по lock + wheelhouse (запрет на install из .in)
 - Wheelhouse включает setuptools/wheel для сборки sdist офлайн

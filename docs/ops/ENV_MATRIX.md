@@ -1,13 +1,11 @@
-# ENV Matrix
+# ENV Matrix (v2.9.0)
 
-| Env | Service | Var | Meaning | Example |
-| --- | --- | --- | --- | --- |
-| preview | app | `NEXT_PUBLIC_API_URL` | Base URL API (preview) | `https://gtrack-preview.railway.app` |
-| prod | app | `NEXT_PUBLIC_API_URL` | Base URL API (prod) | `https://drivers.g-track.eu/api` |
-| prod | backend | `PORT` | HTTP port | `8080` |
-| prod | backend | `ALLOWED_ORIGINS` | CSV со списком CORS | `https://drivers.g-track.eu,https://*.vercel.app` |
-| preview/prod | backend | `AUTH_SECRET` | Секрет для сессий/JWT | (set in Railway) |
-| preview/prod | backend | `ENCRYPTION_KEY_V1` | Активный ключ AES-256-GCM (base64) | `base64:...` |
-| preview/prod | backend | `ENCRYPTION_KEY_PREV` | Предыдущий ключ для дешифрования (опционально) | `base64:...` |
-| preview/prod | backend | `HASH_SALT` | Соль для blind indexes (base64) | `base64:...` |
-| preview/prod | backend | `APP_ROLE_HEADER` | Название заголовка с ролью | `x-gtrack-role` |
+Компонент | Переменная | Назначение | Пример
+---|---|---|---
+Frontend (Angular) | NG_APP_API_URL | Базовый URL API | https://api.g-track.eu
+Backend (Laravel) | APP_URL | Базовый URL приложения | https://api.g-track.eu
+Backend (Laravel) | DB_CONNECTION/HOST/PORT/NAME/USER/PASS | PostgreSQL 16 | pgsql / 10.0.0.5 / 5432 / gtrack / gtrack / secret
+Backend (Laravel) | SANCTUM_STATEFUL_DOMAINS | SPA-домены | app.g-track.eu,localhost:4200
+Backend (Laravel) | SESSION_DOMAIN | Куки-домен | .g-track.eu
+Backend (Laravel) | QUEUE_CONNECTION | Очереди | database/redis
+Backend (Laravel) | LOG_CHANNEL | Логи | stack

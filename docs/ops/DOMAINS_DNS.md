@@ -1,12 +1,6 @@
-# Domains & DNS
+# Domains & DNS (v2.9.0)
 
-## docs.g-track.eu (GitHub Pages)
-
-* GoDaddy DNS: **CNAME** `docs` → `tqlismqn.github.io` (только одна запись)
-* В репозитории: `docs/CNAME` = `docs.g-track.eu`
-* Pages: Custom domain = docs.g-track.eu; Enforce HTTPS (Let's Encrypt)
-
-## drivers.g-track.eu (Vercel)
-
-* Подключён как Custom Domain в Vercel проекте gtrack-app
-* A/CNAME по инструкции Vercel; HTTPS от Vercel
+- **docs.g-track.eu** — GitHub Pages (MkDocs)
+- **api.g-track.eu** — Laravel backend (Cloud/Railway)
+- **app.g-track.eu** — Angular frontend
+- Записи: A/AAAA/CNAME по провайдеру, SSL через платформу деплоя.
