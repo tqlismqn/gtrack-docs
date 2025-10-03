@@ -1,42 +1,48 @@
-# Data Model (Security Pack v0.3.0)
+# Data Model — Drivers (v2.9.0)
 
-## Driver
+## Таблицы
 
-| Column | Type | Description |
-| --- | --- | --- |
-| `id` | `text` | Уникальный идентификатор `drv_xxx`. |
-| `full_name` | `text` | Полное имя водителя. |
-| `national_id_rc_enc` | `bytea` | Зашифрованный RČ (AES-256-GCM). |
-| `national_id_rc_hash` | `bytea` | Blind index для точного поиска по RČ (HMAC-SHA-256). |
-| `passport_no_enc` | `bytea` | Зашифрованный номер паспорта. |
-| `passport_no_hash` | `bytea` | Blind index для паспорта. |
-| `driver_license_no_enc` | `bytea` | Зашифрованный номер водительского удостоверения. |
-| `driver_license_no_hash` | `bytea` | Blind index для прав. |
-| `iban_enc` | `bytea` | Зашифрованный IBAN. |
-| `iban_hash` | `bytea` | Blind index для IBAN. |
-| `swift_enc` | `bytea` | Зашифрованный SWIFT/BIC. |
-| `swift_hash` | `bytea` | Blind index для SWIFT/BIC. |
-| `tacho_card_no_enc` | `bytea` | Зашифрованный номер тахографической карты. |
-| `tacho_card_no_hash` | `bytea` | Blind index для тахокарты. |
-| `documents` | `jsonb` | Массив документов (структура ниже), хранится без PII. |
-| `created_at` | `timestamptz` | Время создания. |
-| `updated_at` | `timestamptz` | Время последнего изменения. |
+### drivers
+- id (PK)
+- last_name (string, req)
+- first_name (string, req)
+- middle_name (string, nullable)
+- birth_date (date, nullable)
+- rc (string, nullable) — родное число (CZ)
+- citizenship (string, nullable)
+- gender (string(10), nullable)
+- reg_address (string, nullable) — адрес регистрации
+- res_address (string, nullable) — адрес проживания
+- phone (string, nullable)
+- email (string, nullable)
+- status (enum: Active, OnLeave, Inactive, Terminated) — default Active
+- hired_at (date, nullable)
+- terminated_at (date, nullable)
+- contract_type (string, nullable)
+- contract_signed (bool, default false)
+- workplace (string, nullable)
+- pas_souhlas (bool, default false)
+- propiska_cz (bool, default false)
+- created_at, updated_at (timestamps)
 
-### JSONB `documents`
+### document_types
+- id (PK)
+- code (string, unique) — e.g. PASSPORT, VISA, DL, A1, ADR, CODE95, MEDICAL, PSYCHO, TACHO
+- meta (json, nullable)
+- created_at, updated_at
 
-| Field | Type | Description |
-| --- | --- | --- |
-| `doc_type` | enum(`driver_license`,`medical`,`tachograph`,`other`) | Тип документа. |
-| `expires_at` | `date` | Дата истечения (YYYY-MM-DD). |
-| `status` | enum(`valid`,`expiring`,`expired`) | Расчёт по правилам UI. |
+### driver_documents
+- id (PK)
+- driver_id (FK → drivers.id, on delete cascade)
+- document_type_id (FK → document_types.id)
+- number (string, nullable)
+- issued_at (date, nullable)
+- expires_at (date, nullable)
+- country (string, nullable)
+- file_path (string, nullable) — путь к загруженному скану
+- created_at, updated_at
+- INDEX(driver_id, document_type_id)
 
-### Индексы
-
-* `idx_drivers_rc_hash` — B-tree по `national_id_rc_hash`.
-* `idx_drivers_passport_hash` — B-tree по `passport_no_hash`.
-* `idx_drivers_license_hash` — B-tree по `driver_license_no_hash`.
-* `idx_drivers_iban_hash` — B-tree по `iban_hash`.
-* `idx_drivers_swift_hash` — B-tree по `swift_hash`.
-* `idx_drivers_tacho_hash` — B-tree по `tacho_card_no_hash`.
-
-Blind index = `HMAC_SHA256(value, HASH_SALT)` → первые 32 байта.
+## Retention & Audit
+- Audit: activity log на уровне CRUD для drivers и driver_documents.
+- Retention документов: 5 лет (учёт Legal Hold).

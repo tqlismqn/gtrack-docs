@@ -1,12 +1,16 @@
-# CI/CD Overview
-
-## gtrack-app / gtrack-backend
-
-* Checks: build, lint, check-docs + policies (guard-readme, fresh-branch, branch-name)
-* Require status checks to pass; linear history; squash merge
+# CI/CD (v2.9.0)
 
 ## gtrack-docs
+- Build: `mkdocs build --strict`
+- Checks: Docs - Preview (PR), Docs - Deploy (main)
 
-* **Docs - Preview** (PR): mkdocs build --strict
-* **Docs - Deploy** (main): GitHub Pages; site_url=[https://docs.g-track.eu](https://docs.g-track.eu)
-* Автосинк: app/backend → import/* (PR в gtrack-docs)
+## gtrack-app (Angular 17)
+- Node ≥18.13
+- Steps: `npm ci` → `npm run build`
+- Artifact: dist/
+- Deploy: static host/Vercel
+
+## gtrack-backend (Laravel 10)
+- PHP ≥8.1, Composer ≥2.2
+- Steps: `composer install --no-dev --optimize-autoloader` → `php artisan key:generate` → `php artisan migrate --force` → `php artisan test`
+- Deploy: Laravel Cloud (primary) или Railway (fallback)
