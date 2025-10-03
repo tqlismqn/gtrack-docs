@@ -20,20 +20,25 @@ nav:
           - Обзор: api/v0/index.md
           - Health: api/v0/health.md
           - Водители: api/v0/drivers.md
-  - Specs:
+  - Spec:
       - Обзор: spec/index.md
       - API v0 (ReDoc): spec/redoc/v0.md
       - API v1 (ReDoc, DRAFT): spec/redoc/v1.md
       - Drivers:
+          - Overview: spec/drivers/README.md
+          - Tech Spec (v2.9): spec/drivers/DRIVERS_TECH_SPEC.md
+          - Dev Spec (v1.5): spec/drivers/DRIVERS_DEV_SPEC.md
           - Data Model: spec/drivers/DATA_MODEL.md
           - API (v0): spec/drivers/API.md
           - Validation: spec/drivers/VALIDATION.md
           - RBAC: spec/drivers/RBAC.md
           - Open Questions & Assumptions: spec/drivers/OPEN_QUESTIONS_AND_ASSUMPTIONS.md
+          # - Audit & Notifications: spec/drivers/AUDIT_AND_NOTIFICATIONS.md  # keep if exists
   - Ops:
       - CI:
           - Offline PyPI: ops/CI/offline-pip.md
       - Update Packs:
+          - docs-v2.9: ops/UPDATE_PACKS/docs-v2.9.md
           - Drivers v0.1: ops/UPDATE_PACKS/drivers-v0.1.md
   - Import: import/index.md
   - Docs Changelog: CHANGELOG.md
