@@ -2,6 +2,9 @@
 
 Все заметные изменения в документации фиксируются в этом файле.
 
+## docs-v2.9 — 2025-10-03
+- Drivers: добавлены ТЗ v2.9 и Dev Spec v1.5, обновлена навигация и Update Pack.
+
 ### docs-v2.9.1 — Drivers: Audit & Notifications
 
 * NEW: `spec/drivers/AUDIT_AND_NOTIFICATIONS.md` — модель аудита, каналы уведомлений, настройки, триггеры, weekly report.
