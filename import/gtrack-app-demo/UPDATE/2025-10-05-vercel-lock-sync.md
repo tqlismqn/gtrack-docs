@@ -1,3 +1,0 @@
-- fix(vercel): resilient install (ci → fallback to install on lock desync)
-- ci: auto PR to sync package-lock.json after package.json changes
-- note: once lock PR is merged, you may switch installCommand back to `npm ci --loglevel=error`
