@@ -1,16 +1,15 @@
-name: Docs - Auto Sync to Import
+name: Docs – Auto Sync to Import
 on:
   workflow_dispatch:
     inputs:
-      reason:
-        description: "Why sync?"
+      plan_path:
+        description: "Path to sync plan YAML"
         required: false
+        default: "docs/import/config/sync.plan.yaml"
       owner:
-        description: "Repos owner (default: current repo owner)"
+        description: "Owner/org of source repos (blank = current owner)"
         required: false
-  schedule:
-    - cron: "30 5 * * *"   # daily 05:30 UTC
-
+        default: ""
 permissions:
   contents: write
   pull-requests: write
@@ -19,105 +18,97 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     env:
+      PLAN_PATH: ${{ github.event.inputs.plan_path || 'docs/import/config/sync.plan.yaml' }}
       OWNER: ${{ github.event.inputs.owner || github.repository_owner }}
-      APP_REPO: ${{ github.event.inputs.owner && format('{0}/gtrack-app', github.event.inputs.owner) || format('{0}/gtrack-app', github.repository_owner) }}
-      BE_REPO:  ${{ github.event.inputs.owner && format('{0}/gtrack-backend', github.event.inputs.owner) || format('{0}/gtrack-backend', github.repository_owner) }}
     steps:
-      - name: Checkout gtrack-docs
+      - name: Checkout docs repo
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Checkout gtrack-app (docs)
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ env.APP_REPO }}
-          token: ${{ secrets.SYNC_TOKEN }}
-          path: src-app
-          sparse-checkout: |
-            docs
-          sparse-checkout-cone-mode: true
-
-      - name: Checkout gtrack-backend (docs)
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ env.BE_REPO }}
-          token: ${{ secrets.SYNC_TOKEN }}
-          path: src-backend
-          sparse-checkout: |
-            docs
-          sparse-checkout-cone-mode: true
-
-      - name: Prepare import tree
+      - name: Pick token for private repos
+        id: tok
+        shell: bash
         run: |
-          set -euxo pipefail
-          mkdir -p docs/import/app docs/import/backend
-          # Copy only useful formats
-          rsync -a --delete --prune-empty-dirs \
-            --include="*/" \
-            --include="*.md" --include="*.yaml" --include="*.yml" --include="*.json" \
-            --include="*.png" --include="*.jpg" --include="*.jpeg" --include="*.svg" \
-            --exclude="*" \
-            src-app/docs/  docs/import/app/  || true
-          rsync -a --delete --prune-empty-dirs \
-            --include="*/" \
-            --include="*.md" --include="*.yaml" --include="*.yml" --include="*.json" \
-            --include="*.png" --include="*.jpg" --include="*.jpeg" --include="*.svg" \
-            --exclude="*" \
-            src-backend/docs/ docs/import/backend/ || true
-          touch docs/import/.keep
-
-      - name: Detect changes
-        id: diff
-        run: |
-          set -e
-          git add -A
-          if git diff --cached --quiet; then
-            echo "changed=false" >> $GITHUB_OUTPUT
+          if [[ -n "${{ secrets.SYNC_TOKEN }}" ]]; then
+            echo "token=${{ secrets.SYNC_TOKEN }}" >> "$GITHUB_OUTPUT"
+          elif [[ -n "${{ secrets.SingToken }}" ]]; then
+            echo "token=${{ secrets.SingToken }}" >> "$GITHUB_OUTPUT"
           else
-            echo "changed=true"  >> $GITHUB_OUTPUT
+            echo "token=${{ github.token }}" >> "$GITHUB_OUTPUT"
           fi
 
-      # ---------- Optional offline sanity build (if wheelhouse/lock exist) ----------
-      - name: Setup Python
-        if: steps.diff.outputs.changed == 'true'
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: "Offline install (if wheelhouse/lock present)"
-        if: steps.diff.outputs.changed == 'true'
+      - name: Install tools
         run: |
-          set -e
-          if ls docs/vendor/wheels/*.whl >/dev/null 2>&1 && test -s docs/requirements.lock.txt; then
-            export PIP_NO_INDEX=1
-            export PIP_FIND_LINKS=docs/vendor/wheels
-            python -m pip install --no-index --find-links docs/vendor/wheels -r docs/requirements.lock.txt
-            mkdir -p docs/import
-            [ -f docs/import/index.md ] || printf '# Import (autogen)\n\nPlaceholder.\n' > docs/import/index.md
-            python -m mkdocs build --strict
-          else
-            echo "::notice ::No wheelhouse/lock on branch; skipping offline build but creating PR."
-          fi
+          sudo apt-get update -y
+          sudo apt-get install -y jq yq git
 
-      - name: Create Pull Request
-        if: steps.diff.outputs.changed == 'true'
+      - name: Load plan
+        id: plan
+        shell: bash
+        run: |
+          test -f "$PLAN_PATH" || { echo "::error title=Missing plan::$PLAN_PATH not found"; exit 2; }
+          echo "repos=$(yq -o=json '.' "$PLAN_PATH")" >> $GITHUB_OUTPUT
+
+      - name: Sync sources as per plan
+        shell: bash
+        env:
+          GH_TOKEN: ${{ steps.tok.outputs.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p docs/import
+          # PLAN is YAML: top-level keys = repo names
+          REPOS=$(yq -r 'keys | .[]' "$PLAN_PATH")
+          for NAME in $REPOS; do
+            REF=$(yq -r ".\"$NAME\".ref // \"\"" "$PLAN_PATH")
+            echo "::group::Sync $NAME (ref=${REF:-default})"
+            SRC="${OWNER}/${NAME}"
+            # shallow, filter blobs
+            rm -rf "tmp/$NAME"
+            git clone --filter=blob:none --no-checkout "https://x-access-token:${GH_TOKEN}@github.com/${SRC}.git" "tmp/$NAME"
+            pushd "tmp/$NAME" >/dev/null
+              if [[ -n "$REF" && "$REF" != "null" ]]; then git switch -c _sync "$REF" || git checkout "$REF" || true; fi
+              git sparse-checkout init --no-cone
+              # apply include patterns
+              INC_TEMP=$(mktemp)
+              yq -r ".\"$NAME\".include[]?" "$PLAN_PATH" > "$INC_TEMP" || true
+              if [[ -s "$INC_TEMP" ]]; then
+                while IFS= read -r p; do [[ -n "$p" ]] && git sparse-checkout add "$p"; done < "$INC_TEMP"
+              else
+                # default includes
+                git sparse-checkout add docs/** spec/** **/openapi/*.{yaml,yml,json} **/README.md
+              fi
+              git checkout -f
+            popd >/dev/null
+
+            # Copy with excludes
+            DEST="docs/import/${NAME}"
+            rm -rf "$DEST" && mkdir -p "$DEST"
+            rsync -av --prune-empty-dirs --include='*/' \
+              --include='*.md' --include='*.yml' --include='*.yaml' --include='*.json' \
+              --exclude='.git' "tmp/$NAME/" "$DEST/"
+
+            # extra excludes from plan
+            EXC_TEMP=$(mktemp)
+            yq -r ".\"$NAME\".exclude[]?" "$PLAN_PATH" > "$EXC_TEMP" || true
+            if [[ -s "$EXC_TEMP" ]]; then
+              while IFS= read -r pat; do
+                [[ -z "$pat" ]] && continue
+                # delete matches under DEST
+                find "$DEST" -path "$DEST/${pat}" -print -exec rm -rf {} + 2>/dev/null || true
+              done < "$EXC_TEMP"
+            fi
+
+            echo "::endgroup::"
+          done
+
+      - name: Commit & PR
         uses: peter-evans/create-pull-request@v6
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: |
-            docs(sync): import docs from app/backend → docs/import/
-          title: "docs(sync): import from gtrack-app & gtrack-backend"
-          body: |
-            Automated sync of /docs from:
-            - ${{ env.APP_REPO }}
-            - ${{ env.BE_REPO }}
-
-            Includes only (*.md, *.yaml, *.yml, *.json, images).
-            Performed offline sanity build when wheelhouse/lock present.
-          labels: codex, docs, sync
-          signoff: true
-          branch: ci/docs-auto-sync
-          branch-suffix: timestamp
+          token: ${{ github.token }}
           add-paths: |
             docs/import/**
+          branch: ci/docs-auto-sync
+          title: "docs(sync): import from frontend/backend per plan"
+          labels: codex,docs,sync
+          commit-message: "docs(sync): import sources as per plan"
