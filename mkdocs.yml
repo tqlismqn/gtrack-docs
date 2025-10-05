@@ -15,6 +15,7 @@ extra_css:
   - stylesheets/layout.css
 
 nav:
+  - G-Track — Обзор: index.md
   - ADR:
       - STACK: adr/ADR-STACK-0001-angular17-laravel10.md
   - SPEC:
@@ -28,8 +29,12 @@ nav:
       - Deployment: ops/DEPLOYMENT.md
       - Domains & DNS: ops/DOMAINS_DNS.md
   - Import:
-      - Backend (README): import/backend/README.md
-      - Frontend (README): import/frontend/README.md
+      - Backend:
+          - Overview: import/backend/README.md
+          - Notes: import/backend/_notes/TECH_STACK.md
+      - Frontend:
+          - Overview: import/frontend/README.md
+          - Notes: import/frontend/_notes/TECH_STACK.md
   - Update Packs:
       - 2025-10-03 — v2.9.0: ops/UPDATE_PACKS/2025-10-03-docs-update-pack-v2.9.0.md
   - Changelog: CHANGELOG.md
