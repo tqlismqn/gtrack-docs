@@ -4,4 +4,4 @@ targetDir: import/gtrack-app-demo
 include:
   - docs/**
 notes: |
-  Авто-импорт из gtrack-app-demo. Источник истины — портал gtrack-docs.
+  Авто-импорт из GTrack-App-Demo.
