@@ -1,0 +1,3 @@
+- chore: pin Node to 20.x (+ .nvmrc=20.11.1)
+- deps: rimraf→^5, force glob→^10, map @humanwhocodes/* → @eslint/*
+- build: quieter npm install on Vercel (loglevel=error)

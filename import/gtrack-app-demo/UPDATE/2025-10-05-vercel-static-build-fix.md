@@ -1,0 +1,2 @@
+- fix(vercel): switch to @vercel/static-build + proper routes for /drivers
+- reason: previous config with "builds" expected prebuilt files → empty deployment
