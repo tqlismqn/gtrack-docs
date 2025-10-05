@@ -45,65 +45,100 @@ jobs:
           path: _src/frontend
           ref: ${{ inputs.ref || '' }}
 
-      - name: Sync files (README + docs/* if present)
+      - name: Sync files (robust — backend & frontend)
+        id: sync
         shell: bash
         run: |
           set -euo pipefail
+          shopt -s globstar nullglob
           mkdir -p docs/import/backend docs/import/frontend
-          # Backend
-          if [ -f _src/backend/README.md ]; then
-            cp _src/backend/README.md docs/import/backend/README.md
-          fi
-          if [ -d _src/backend/docs ]; then
-            # Backend docs → preserve local notes
-            rsync -a --delete \
-              --exclude='_notes/**' \
-              --prune-empty-dirs --include='*/' --include='*.md' --include='*.yaml' --exclude='*' \
-              _src/backend/docs/ docs/import/backend/
-          fi
-          # Frontend
-          if [ -f _src/frontend/README.md ]; then
-            cp _src/frontend/README.md docs/import/frontend/README.md
-          fi
-          if [ -d _src/frontend/docs ]; then
-            # Frontend docs → preserve local notes
-            rsync -a --delete \
-              --exclude='_notes/**' \
-              --prune-empty-dirs --include='*/' --include='*.md' --include='*.yaml' --exclude='*' \
-              _src/frontend/docs/ docs/import/frontend/
+
+          sync_repo () {
+            local SRC_DIR="$1"     # _src/backend or _src/frontend
+            local DEST_DIR="$2"    # docs/import/backend or docs/import/frontend
+
+            # 1) README: find case-insensitively in common places (root, apps/**, packages/**)
+            READ_ME="$(find "$SRC_DIR" -maxdepth 2 -iregex '.*/README\.(md\|markdown)$' | head -n1 || true)"
+            if [ -z "$READ_ME" ]; then
+              READ_ME="$(find "$SRC_DIR"/apps -maxdepth 2 -iregex '.*/README\.(md\|markdown)$' 2>/dev/null | head -n1 || true)"
+            fi
+            if [ -z "$READ_ME" ]; then
+              READ_ME="$(find "$SRC_DIR"/packages -maxdepth 2 -iregex '.*/README\.(md\|markdown)$' 2>/dev/null | head -n1 || true)"
+            fi
+            if [ -n "$READ_ME" ]; then
+              mkdir -p "$DEST_DIR"
+              cp "$READ_ME" "$DEST_DIR/README.md"
+              echo "README -> $DEST_DIR/README.md  (from: $READ_ME)"
+            else
+              echo "No README found for $SRC_DIR"
+            fi
+
+            # 2) CHANGELOG: common names (CHANGELOG.md / CHANGES.md), same places
+            CHANGE_LOG="$(find "$SRC_DIR" -maxdepth 2 -iregex '.*/CHANGELOG\.md' -o -iregex '.*/CHANGES\.md' | head -n1 || true)"
+            if [ -z "$CHANGE_LOG" ]; then
+              CHANGE_LOG="$(find "$SRC_DIR"/apps -maxdepth 2 -iregex '.*/CHANGELOG\.md' -o -iregex '.*/CHANGES\.md' 2>/dev/null | head -n1 || true)"
+            fi
+            if [ -z "$CHANGE_LOG" ]; then
+              CHANGE_LOG="$(find "$SRC_DIR"/packages -maxdepth 2 -iregex '.*/CHANGELOG\.md' -o -iregex '.*/CHANGES\.md' 2>/dev/null | head -n1 || true)"
+            fi
+            if [ -n "$CHANGE_LOG" ]; then
+              mkdir -p "$DEST_DIR"
+              cp "$CHANGE_LOG" "$DEST_DIR/CHANGELOG.md"
+              echo "CHANGELOG -> $DEST_DIR/CHANGELOG.md  (from: $CHANGE_LOG)"
+            else
+              echo "No CHANGELOG found for $SRC_DIR"
+            fi
+
+            # 3) Docs trees:
+            #    - root docs/
+            #    - apps/**/docs
+            #    - packages/**/docs
+            #    Preserve local notes (_notes/**). Delete everything else to avoid stale files.
+            for DOCS_PATH in \
+              "$SRC_DIR/docs" \
+              "$SRC_DIR"/apps/**/docs \
+              "$SRC_DIR"/packages/**/docs
+            do
+              if [ -d "$DOCS_PATH" ]; then
+                echo "Syncing tree: $DOCS_PATH -> $DEST_DIR/"
+                rsync -a --delete \
+                  --exclude='_notes/**' \
+                  --prune-empty-dirs \
+                  --include='*/' --include='*.md' --include='*.yaml' --include='*.yml' \
+                  --exclude='*' \
+                  "$DOCS_PATH"/ "$DEST_DIR"/
+              fi
+            done
+          }
+
+          # Backend then Frontend
+          sync_repo "_src/backend"  "docs/import/backend"
+          sync_repo "_src/frontend" "docs/import/frontend"
+
+          # print status and prepare commit flag
+          if git status --porcelain | grep -q .; then
+            git add -A
+            git commit -m "docs(sync): import from gtrack-backend & gtrack-frontend (robust)"
+            echo "changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "No changes to sync."
+            echo "changes=false" >> $GITHUB_OUTPUT
           fi
 
-      # Copy root CHANGELOGs (if present) into import folders
-      - name: Copy backend CHANGELOG
-        if: ${{ hashFiles('_src/backend/CHANGELOG.md') != '' }}
+      # Add a small debug step to show latest commits and the files we copied
+      - name: Debug info (last commits + file heads)
+        shell: bash
         run: |
-          mkdir -p docs/import/backend
-          cp _src/backend/CHANGELOG.md docs/import/backend/CHANGELOG.md
-
-      - name: Copy frontend CHANGELOG
-        if: ${{ hashFiles('_src/frontend/CHANGELOG.md') != '' }}
-        run: |
-          mkdir -p docs/import/frontend
-          cp _src/frontend/CHANGELOG.md docs/import/frontend/CHANGELOG.md
+          set -euo pipefail
+          echo "Backend HEAD:";  git -C _src/backend  log -1 --pretty=oneline || true
+          echo "Frontend HEAD:"; git -C _src/frontend log -1 --pretty=oneline || true
+          echo "Frontend README (first 10 lines)"; head -n 10 docs/import/frontend/README.md || true
+          echo "Frontend CHANGELOG (first 10 lines)"; head -n 10 docs/import/frontend/CHANGELOG.md || true
 
       # Build combined timeline from the two changelogs
       - name: Build combined releases timeline
         run: |
           python3 scripts/build_release_timeline.py
-
-      - name: Commit changes
-        id: sync
-        run: |
-          set -euo pipefail
-          if [ -z "$(git status --porcelain)" ]; then
-            echo "No changes to sync."
-            echo "changes=false" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          git add -A
-          git commit -m "docs(sync): import from gtrack-backend & gtrack-frontend"
-          echo "changes=true" >> $GITHUB_OUTPUT
 
       - name: Push branch & open PR
         if: steps.sync.outputs.changes == 'true'
