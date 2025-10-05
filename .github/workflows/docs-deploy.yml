@@ -1,74 +1,42 @@
-name: Docs - Deploy
+name: Docs – Deploy
 on:
   push:
-    branches:
-      - main
+    branches: [ "main" ]
+
 permissions:
   contents: read
   pages: write
   id-token: write
-
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+        with: { fetch-depth: 0 }
       - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Detect wheelhouse/lock (soft)
-        id: guard
+        with: { python-version: "3.11" }
+      - name: Install deps (online, non-strict)
         run: |
-          WCOUNT=$(ls -1 docs/vendor/wheels/*.whl 2>/dev/null | wc -l | tr -d ' ')
-          LSIZE=$(test -f docs/requirements.lock.txt && wc -c < docs/requirements.lock.txt | tr -d ' ' || echo 0)
-          echo "wheel_count=$WCOUNT" >> $GITHUB_OUTPUT
-          echo "lock_size=$LSIZE"   >> $GITHUB_OUTPUT
-
-      - name: Upgrade pip tooling
-        run: python -m pip install -U pip wheel
-
-      - name: Install deps (prefer OFFLINE, fallback ONLINE)
-        run: |
-          set -euo pipefail
-          if [ "${{ steps.guard.outputs.wheel_count }}" != "0" ] && [ "${{ steps.guard.outputs.lock_size }}" != "0" ]; then
-            echo "Installing from wheelhouse/lock (offline)…"
-            PIP_NO_INDEX=1 PIP_FIND_LINKS="docs/vendor/wheels" \
-            python -m pip install --no-index --find-links=docs/vendor/wheels -r docs/requirements.lock.txt
-          else
-            echo "Offline assets not found → installing ONLINE from docs/requirements.in…"
-            python -m pip install -r docs/requirements.in
-          fi
-
-      - name: Ensure Import placeholder (safe)
-        run: |
-          mkdir -p docs/import
-          [ -f docs/import/index.md ] || printf '# Import\n\nAuto-generated placeholder.\n' > docs/import/index.md
-
-      - name: Build docs (non-strict)
+          python -m pip install --upgrade pip
+          pip install -r docs/requirements.in || true
+          pip install -r docs/requirements.txt || true
+      - name: Build site (non-strict)
         run: python -m mkdocs build
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
-        with:
-          path: ./site
+        with: { path: "site" }
 
   deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
     steps:
-      - name: Deploy to GitHub Pages
+      - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4
