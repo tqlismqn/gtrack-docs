@@ -6,8 +6,6 @@ on:
         description: "Python version"
         required: false
         default: "3.11"
-  schedule:
-    - cron: "0 6 * * 1"   # каждый понедельник 06:00 UTC
 
 permissions:
   contents: write
