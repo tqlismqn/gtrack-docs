@@ -1,11 +1,6 @@
 name: Docs - Refresh Wheels
 on:
   workflow_dispatch:
-    inputs:
-      python:
-        description: "Python version"
-        required: false
-        default: "3.11"
 
 permissions:
   contents: write

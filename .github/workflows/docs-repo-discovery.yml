@@ -1,23 +1,6 @@
 name: Docs – Repo Discovery
 on:
   workflow_dispatch:
-    inputs:
-      owner:
-        description: "Repos owner/org (default: current repo owner)"
-        required: false
-      repos:
-        description: "Comma-separated repo names"
-        required: false
-        default: "gtrack-frontend,gtrack-backend"
-      ref:
-        description: "Branch/tag to inspect (default: default branch)"
-        required: false
-      roadmap_label:
-        description: "Label for roadmap issues"
-        required: false
-        default: "roadmap"
-  schedule:
-    - cron: "11 6 * * 1"  # weekly Mon 06:11 UTC
 
 permissions:
   contents: write

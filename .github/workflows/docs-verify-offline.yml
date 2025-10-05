@@ -1,6 +1,6 @@
 name: Docs - Verify Offline
 on:
-  workflow_dispatch: {}
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -44,25 +44,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p docs/import
-          # Do nothing if README.md exists (it would conflict with index.md)
-          if [ -f docs/import/README.md ]; then
-            exit 0
-          fi
-          # Create placeholder index only if absent
-          if [ ! -f docs/import/index.md ]; then
-            cat > docs/import/index.md <<'MD'
----
-title: Import (автосинк)
-hide:
-  - toc
----
-
-# Import (автосинк)
-
-Этот раздел наполняется автоматически из `docs/import/`.  
-Как только появятся `.md`/`.yaml`, они попадут в меню (awesome-pages).
-MD
-          fi
+          [ -f docs/import/index.md ] || printf '# Import\n\nAuto-generated placeholder (verify-offline).\n' > docs/import/index.md
 
       - name: Lint: no dual import roots
         run: |

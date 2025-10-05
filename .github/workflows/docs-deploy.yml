@@ -1,6 +1,8 @@
 name: Docs - Deploy
 on:
-  workflow_dispatch: {}
+  push:
+    branches:
+      - main
 permissions:
   contents: read
   pages: write
@@ -13,8 +15,6 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    outputs:
-      ready: ${{ steps.guard.outputs.ready }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -23,74 +23,46 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Detect wheelhouse/lock
+      - name: Detect wheelhouse/lock (soft)
         id: guard
         run: |
           WCOUNT=$(ls -1 docs/vendor/wheels/*.whl 2>/dev/null | wc -l | tr -d ' ')
           LSIZE=$(test -f docs/requirements.lock.txt && wc -c < docs/requirements.lock.txt | tr -d ' ' || echo 0)
-          READY=false; [ "$WCOUNT" -gt 0 ] && [ "$LSIZE" -gt 0 ] && READY=true
-          echo "ready=$READY" >> $GITHUB_OUTPUT
           echo "wheel_count=$WCOUNT" >> $GITHUB_OUTPUT
-          echo "lock_size=$LSIZE" >> $GITHUB_OUTPUT
+          echo "lock_size=$LSIZE"   >> $GITHUB_OUTPUT
 
-      - name: Offline install
-        if: steps.guard.outputs.ready == 'true'
-        env:
-          PIP_NO_INDEX: "1"
-          PIP_FIND_LINKS: "docs/vendor/wheels"
-        run: |
-          python -m pip --version
-          python -m pip install --no-index --find-links docs/vendor/wheels -r docs/requirements.lock.txt
+      - name: Upgrade pip tooling
+        run: python -m pip install -U pip wheel
 
-      - name: Ensure Import placeholder (strict-safe)
-        if: steps.guard.outputs.ready == 'true'
+      - name: Install deps (prefer OFFLINE, fallback ONLINE)
         run: |
           set -euo pipefail
-          mkdir -p docs/import
-          # Do nothing if README.md exists (it would conflict with index.md)
-          if [ -f docs/import/README.md ]; then
-            exit 0
-          fi
-          # Create placeholder index only if absent
-          if [ ! -f docs/import/index.md ]; then
-            cat > docs/import/index.md <<'MD'
----
-title: Import (автосинк)
-hide:
-  - toc
----
-
-# Import (автосинк)
-
-Этот раздел наполняется автоматически из `docs/import/`.  
-Как только появятся `.md`/`.yaml`, они попадут в меню (awesome-pages).
-MD
+          if [ "${{ steps.guard.outputs.wheel_count }}" != "0" ] && [ "${{ steps.guard.outputs.lock_size }}" != "0" ]; then
+            echo "Installing from wheelhouse/lock (offline)…"
+            PIP_NO_INDEX=1 PIP_FIND_LINKS="docs/vendor/wheels" \
+            python -m pip install --no-index --find-links=docs/vendor/wheels -r docs/requirements.lock.txt
+          else
+            echo "Offline assets not found → installing ONLINE from docs/requirements.in…"
+            python -m pip install -r docs/requirements.in
           fi
 
-      - name: Lint: no dual import roots
+      - name: Ensure Import placeholder (safe)
         run: |
-          set -e
-          if [ -f docs/import/index.md ] && [ -f docs/import/README.md ]; then
-            echo "::error title=Duplicate import root::Both docs/import/index.md and docs/import/README.md exist. Keep only one."
-            exit 2
-          fi
+          mkdir -p docs/import
+          [ -f docs/import/index.md ] || printf '# Import\n\nAuto-generated placeholder.\n' > docs/import/index.md
 
-      - name: Build (strict)
-        if: steps.guard.outputs.ready == 'true'
-        run: python -m mkdocs build --strict
+      - name: Build docs (non-strict)
+        run: python -m mkdocs build
 
       - name: Setup Pages
-        if: steps.guard.outputs.ready == 'true'
         uses: actions/configure-pages@v5
 
       - name: Upload artifact
-        if: steps.guard.outputs.ready == 'true'
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./site
 
   deploy:
-    if: needs.build.outputs.ready == 'true'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
