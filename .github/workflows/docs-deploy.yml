@@ -17,6 +17,8 @@ jobs:
       ready: ${{ steps.guard.outputs.ready }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -40,11 +42,38 @@ jobs:
           python -m pip --version
           python -m pip install --no-index --find-links docs/vendor/wheels -r docs/requirements.lock.txt
 
-      - name: Ensure Import placeholder
+      - name: Ensure Import placeholder (strict-safe)
         if: steps.guard.outputs.ready == 'true'
         run: |
+          set -euo pipefail
           mkdir -p docs/import
-          [ -f docs/import/index.md ] || printf '# Import (autogen)\n\nPlaceholder.\n' > docs/import/index.md
+          # Do nothing if README.md exists (it would conflict with index.md)
+          if [ -f docs/import/README.md ]; then
+            exit 0
+          fi
+          # Create placeholder index only if absent
+          if [ ! -f docs/import/index.md ]; then
+            cat > docs/import/index.md <<'MD'
+---
+title: Import (автосинк)
+hide:
+  - toc
+---
+
+# Import (автосинк)
+
+Этот раздел наполняется автоматически из `docs/import/`.  
+Как только появятся `.md`/`.yaml`, они попадут в меню (awesome-pages).
+MD
+          fi
+
+      - name: Lint: no dual import roots
+        run: |
+          set -e
+          if [ -f docs/import/index.md ] && [ -f docs/import/README.md ]; then
+            echo "::error title=Duplicate import root::Both docs/import/index.md and docs/import/README.md exist. Keep only one."
+            exit 2
+          fi
 
       - name: Build (strict)
         if: steps.guard.outputs.ready == 'true'
