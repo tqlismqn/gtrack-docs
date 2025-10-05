@@ -1,0 +1,228 @@
+name: Docs – Repo Discovery
+on:
+  workflow_dispatch:
+    inputs:
+      owner:
+        description: "Repos owner/org (default: current repo owner)"
+        required: false
+      repos:
+        description: "Comma-separated repo names"
+        required: false
+        default: "gtrack-frontend,gtrack-backend"
+      ref:
+        description: "Branch/tag to inspect (default: default branch)"
+        required: false
+      roadmap_label:
+        description: "Label for roadmap issues"
+        required: false
+        default: "roadmap"
+  schedule:
+    - cron: "11 6 * * 1"   # weekly Mon 06:11 UTC
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    env:
+      OWNER: ${{ github.event.inputs.owner || github.repository_owner }}
+      REPOS_CSV: ${{ github.event.inputs.repos || 'gtrack-frontend,gtrack-backend' }}
+      REF:  ${{ github.event.inputs.ref || '' }}
+      ROADMAP_LABEL: ${{ github.event.inputs.roadmap_label || 'roadmap' }}
+    steps:
+      - name: Checkout gtrack-docs
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Pick auth token (SYNC_TOKEN or SingToken or GITHUB_TOKEN)
+        id: tok
+        shell: bash
+        run: |
+          if [[ -n "${{ secrets.SYNC_TOKEN }}" ]]; then
+            echo "token=${{ secrets.SYNC_TOKEN }}" >> "$GITHUB_OUTPUT"
+          elif [[ -n "${{ secrets.SingToken }}" ]]; then
+            echo "token=${{ secrets.SingToken }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "token=${{ github.token }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install gh CLI
+        uses: cli/cli@v2
+        with:
+          version: latest
+
+      - name: Prepare output tree and starter plan
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p docs/ops/IMPORT_DISCOVERY
+          touch docs/ops/IMPORT_DISCOVERY/.keep
+          mkdir -p docs/import/config
+          cat > docs/import/config/sync.plan.yaml <<'YAML'
+# Sync Plan (edit after discovery PR).
+# Example:
+# gtrack-frontend:
+#   ref: main
+#   include:
+#     - docs/**
+#     - **/openapi/*.{yaml,yml,json}
+#     - **/README.md
+#   exclude:
+#     - node_modules/**
+# gtrack-backend:
+#   ref: main
+#   include:
+#     - docs/**
+#     - spec/**/*
+#   exclude:
+#     - **/*.bak
+YAML
+
+      - name: Run discovery (scan repos)
+        shell: bash
+        env:
+          GH_TOKEN: ${{ steps.tok.outputs.token }}
+        run: |
+          set -euo pipefail
+          IFS=',' read -ra REPO_NAMES <<< "${REPOS_CSV}"
+
+          md_escape() { sed -e 's/`/\\`/g'; }
+
+          gen_repo_page () {
+            local OWNER="$1" NAME="$2" REF_IN="$3" LABEL="$4"
+            local FULL="${OWNER}/${NAME}"
+            echo "::group::Scanning $FULL"
+
+            local META=$(gh api repos/$FULL -H 'Accept: application/vnd.github+json' \
+              --jq '{full_name, private, visibility, default_branch, archived, license:(.license.spdx_id // "NONE"), pushed_at, html_url}' )
+            local DEFBR=$(echo "$META" | jq -r '.default_branch')
+            local REF="$DEFBR"; [[ -n "$REF_IN" ]] && REF="$REF_IN"
+            local LANG=$(gh api repos/$FULL/languages --jq 'to_entries|map("\(.key): \(.value)")|join(", ")' || true)
+            local RELC=$(gh api repos/$FULL/releases --jq 'length' 2>/dev/null || echo 0)
+            local TAGC=$(gh api repos/$FULL/tags --jq 'length' 2>/dev/null || echo 0)
+            local MILS=$(gh api repos/$FULL/milestones --jq '.[] | "- **\(.title)** — \(.state); due: \(.due_on // "n/a")"' 2>/dev/null || true)
+            local ROAD=$(gh api "repos/$FULL/issues?labels=$LABEL&state=all&per_page=100" --paginate \
+                          --jq '.[] | "- [\(.title)](\(.html_url)) — \(.state); \(.created_at[0:10])"' 2>/dev/null || true)
+            local ROOT=$(gh api repos/$FULL/contents --jq '[.[] | {name, type, path}]' -F ref="$REF" 2>/dev/null || echo '[]')
+
+            CAND_FILES=""; for f in docs documentation doc spec specs mkdocs.yml README.md CHANGELOG.md; do
+              echo "$ROOT" | jq -e --arg n "$f" '.[]|select(.name==$n)' >/dev/null && CAND_FILES+="${f}\n"
+            done
+            CAND_DIRS=""; for d in docs documentation doc spec specs api openapi swagger adr ADR; do
+              echo "$ROOT" | jq -e --arg d "$d" '.[]|select(.name==$d and .type=="dir")' >/dev/null && CAND_DIRS+="${d}\n"
+            done
+
+            SHALLOW=""
+            list_dir () { gh api repos/$FULL/contents/"$1" -F ref="$REF" --jq '.[] | select(.type=="file") | .path' 2>/dev/null || true; }
+            while IFS= read -r d; do
+              [[ -z "$d" ]] && continue
+              FILES=$(list_dir "$d" | sed -E 's#^#- #')
+              [[ -n "$FILES" ]] && SHALLOW+="\n### $d\n$FILES\n"
+            done <<< "$(printf "%b" "$CAND_DIRS")"
+
+            local OUT="docs/ops/IMPORT_DISCOVERY/${NAME}.md"
+            {
+              echo "# Import Discovery — ${FULL}"
+              echo
+              echo "**Meta:** \`$META\`" | md_escape
+              echo
+              echo "- **Default branch:** \`$DEFBR\`   •   **Ref scanned:** \`$REF\`"
+              echo "- **Languages:** ${LANG:-n/a}"
+              echo "- **Releases:** ${RELC}   •   **Tags:** ${TAGC}"
+              echo
+              echo "## Candidate roots"
+              echo
+              echo '```json'; echo "$ROOT"; echo '```'
+              echo
+              echo "## Heuristic candidates"
+              if [[ -n "$CAND_FILES$CAND_DIRS" ]]; then
+                echo; echo '```'; printf "%b%b" "$CAND_FILES" "$CAND_DIRS" | sed '/^$/d'; echo '```'
+              else
+                echo; echo "_No obvious doc/spec roots at repository root._"
+              fi
+              [[ -n "$SHALLOW" ]] && { echo; echo "## Shallow listing of candidate dirs"; echo -e "$SHALLOW"; }
+              echo
+              echo "## Milestones";   echo "${MILS:-_No milestones_}"
+              echo; echo "## Roadmap issues (label: ${LABEL})"; echo "${ROAD:-_No issues_}"
+              echo
+              echo "## Suggested import plan (edit in sync.plan.yaml)"
+              echo '```yaml'
+              echo "${NAME}:"
+              echo "  ref: ${REF}"
+              echo "  include:"
+              echo "    - docs/**"
+              echo "    - spec/**"
+              echo "    - **/openapi/*.{yaml,yml,json}"
+              echo "    - **/README.md"
+              echo "  exclude:"
+              echo "    - node_modules/**"
+              echo "    - **/*.bak"
+              echo '```'
+              echo; echo "_Generated $(date -u +'%Y-%m-%d %H:%M UTC')._"
+            } > "$OUT"
+
+            echo "::endgroup::"
+          }
+
+          for NAME in "${REPO_NAMES[@]}"; do
+            NAME=$(echo "$NAME" | xargs); [[ -z "$NAME" ]] && continue
+            gen_repo_page "$OWNER" "$NAME" "$REF" "$ROADMAP_LABEL"
+          done
+
+      - name: Build index + ensure Ops nav
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo "# Import Discovery (overview)"
+            echo
+            for f in docs/ops/IMPORT_DISCOVERY/*.md; do
+              b=$(basename "$f"); [[ "$b" == ".keep" || "$b" == "index.md" ]] && continue
+              n="${b%.md}"
+              echo "- [$n](./$b)"
+            done
+          } > docs/ops/IMPORT_DISCOVERY/index.md
+
+          OPS=docs/ops/.pages
+          if ! test -f "$OPS"; then
+            cat > "$OPS" <<'PAGES'
+title: Ops
+nav:
+  - Update Packs: UPDATE_PACKS/
+  - Releases: RELEASES/
+  - ROADMAP.md
+  - Import Discovery: IMPORT_DISCOVERY/
+PAGES
+          else
+            grep -q "Import Discovery:" "$OPS" || sed -i '4a\  - Import Discovery: IMPORT_DISCOVERY/' "$OPS"
+          fi
+
+      - name: Commit discovery
+        id: commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            git commit -m "docs(discovery): repo inventory & import plan draft"
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Open PR with report
+        if: steps.commit.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ github.token }}
+          branch: ci/docs-repo-discovery
+          title: "docs(discovery): repo inventory & import plan"
+          labels: codex,docs,discovery
+          delete-branch: false
+          signoff: false
+          commit-message: "docs(discovery): generate analysis and draft sync plan"
