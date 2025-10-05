@@ -56,14 +56,22 @@ jobs:
             cp _src/backend/README.md docs/import/backend/README.md
           fi
           if [ -d _src/backend/docs ]; then
-            rsync -a --delete --prune-empty-dirs --include="*/" --include="*.md" --include="*.yaml" --exclude="*" _src/backend/docs/ docs/import/backend/
+            # Backend docs → preserve local notes
+            rsync -a --delete \
+              --exclude='_notes/**' \
+              --prune-empty-dirs --include='*/' --include='*.md' --include='*.yaml' --exclude='*' \
+              _src/backend/docs/ docs/import/backend/
           fi
           # Frontend
           if [ -f _src/frontend/README.md ]; then
             cp _src/frontend/README.md docs/import/frontend/README.md
           fi
           if [ -d _src/frontend/docs ]; then
-            rsync -a --delete --prune-empty-dirs --include="*/" --include="*.md" --include="*.yaml" --exclude="*" _src/frontend/docs/ docs/import/frontend/
+            # Frontend docs → preserve local notes
+            rsync -a --delete \
+              --exclude='_notes/**' \
+              --prune-empty-dirs --include='*/' --include='*.md' --include='*.yaml' --exclude='*' \
+              _src/frontend/docs/ docs/import/frontend/
           fi
 
           # Nothing to commit?
