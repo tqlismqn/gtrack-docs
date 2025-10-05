@@ -27,6 +27,9 @@ nav:
       - CI/CD: ops/CI_CD.md
       - Deployment: ops/DEPLOYMENT.md
       - Domains & DNS: ops/DOMAINS_DNS.md
+  - Import:
+      - Frontend (README): import/gtrack-frontend/README.md
+      - Backend (README): import/gtrack-backend/README.md
   - Update Packs:
       - 2025-10-03 — v2.9.0: ops/UPDATE_PACKS/2025-10-03-docs-update-pack-v2.9.0.md
   - Changelog: CHANGELOG.md

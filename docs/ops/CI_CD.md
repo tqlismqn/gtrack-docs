@@ -4,13 +4,13 @@
 - Build: `mkdocs build --strict`
 - Checks: Docs - Preview (PR), Docs - Deploy (main)
 
-## gtrack-app (Angular 17)
-- Node ≥18.13
+## gtrack-frontend (Angular 17)
+- Node 20.x (Vercel runtime)
 - Steps: `npm ci` → `npm run build`
-- Artifact: dist/
-- Deploy: static host/Vercel
+- Artifact: `dist/gtrack-frontend`
+- Deploy: Vercel (Production / Preview environments)
 
 ## gtrack-backend (Laravel 10)
-- PHP ≥8.1, Composer ≥2.2
-- Steps: `composer install --no-dev --optimize-autoloader` → `php artisan key:generate` → `php artisan migrate --force` → `php artisan test`
-- Deploy: Laravel Cloud (primary) или Railway (fallback)
+- PHP 8.3, Composer ≥2.2
+- Steps: `composer install --no-dev --optimize-autoloader` → `php artisan migrate --force` → `php artisan test`
+- Deploy: Laravel Cloud (auto post-deploy: `config:cache`, `route:cache`, `view:cache`, `event:cache`)

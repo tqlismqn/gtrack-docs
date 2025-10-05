@@ -15,7 +15,7 @@
   - Операции: `docs/ops/*` (ENV, CI/CD, домены, SOP)
   - Архив обновлений: `docs/ops/UPDATE_PACKS/*`
 - **Локальные доки кода** (автосинк):
-  - `gtrack-app/docs/**` → `gtrack-docs/docs/import/gtrack-app/**`
+  - `gtrack-frontend/docs/**` → `gtrack-docs/docs/import/gtrack-frontend/**`
   - `gtrack-backend/docs/**` → `gtrack-docs/docs/import/gtrack-backend/**`
 
 ## 2) Когда обновлять
@@ -73,7 +73,7 @@
 Изменили поле в `Driver`:
 
 1. backend PR — схема/ответ `/drivers` → обновить `gtrack-backend/docs/*`
-2. app PR — UI → обновить `gtrack-app/docs/*`
+2. frontend PR — UI → обновить `gtrack-frontend/docs/*`
 3. docs PR — обновить `spec/DATA_MODEL.md`, `spec/API.md`, (при необходимости) `spec/UX/*`
 4. Merge code-PR → автосинк создаст PR в `gtrack-docs/import/*` → смержить
 5. В `gtrack-docs`: обновить `CHANGELOG.md`, добавить Update Pack, поставить тег

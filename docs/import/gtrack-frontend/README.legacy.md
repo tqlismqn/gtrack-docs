@@ -10,7 +10,7 @@
 
 ## Как обновлять snapshot
 1. Склонируйте репозиторий фронтенда: `git clone https://github.com/tqlismqn/gtrack-frontend.git`.
-2. Скопируйте файл `README.md` в `docs/import/gtrack-frontend/README_SNAPSHOT.md`.
+2. Скопируйте файл `README.md` в `docs/import/gtrack-frontend/README.legacy.md`.
 3. Проверьте `mkdocs build --strict`.
 4. Создайте PR в `gtrack-docs` с пометкой `docs: sync frontend readme`.
 

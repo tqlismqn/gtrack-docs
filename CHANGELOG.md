@@ -1,5 +1,12 @@
 # Changelog
 
+## docs-v2.9.2 — 2025-10-05
+- Очистили `docs/import/` от legacy-подрядчиков (`app`, `backend`, `gtrack-app`).
+- Добавили сводные README для `gtrack-frontend` и `gtrack-backend` с архивом legacy README.
+- Обновили навигацию `mkdocs.yml`, индекс Import, SOP/CI/CD и корневой README под новые репозитории.
+- Создали маркер `docs/_meta/redeploy.txt` для форс-ребилда портала.
+
+
 Все заметные изменения в документации фиксируются в этом файле.
 
 ## docs-v2.9 — 2025-10-03
