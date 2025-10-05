@@ -46,7 +46,6 @@ jobs:
           ref: ${{ inputs.ref || '' }}
 
       - name: Sync files (README + docs/* if present)
-        id: sync
         shell: bash
         run: |
           set -euo pipefail
@@ -74,10 +73,31 @@ jobs:
               _src/frontend/docs/ docs/import/frontend/
           fi
 
-          # Nothing to commit?
-          git status --porcelain
+      # Copy root CHANGELOGs (if present) into import folders
+      - name: Copy backend CHANGELOG
+        if: ${{ hashFiles('_src/backend/CHANGELOG.md') != '' }}
+        run: |
+          mkdir -p docs/import/backend
+          cp _src/backend/CHANGELOG.md docs/import/backend/CHANGELOG.md
+
+      - name: Copy frontend CHANGELOG
+        if: ${{ hashFiles('_src/frontend/CHANGELOG.md') != '' }}
+        run: |
+          mkdir -p docs/import/frontend
+          cp _src/frontend/CHANGELOG.md docs/import/frontend/CHANGELOG.md
+
+      # Build combined timeline from the two changelogs
+      - name: Build combined releases timeline
+        run: |
+          python3 scripts/build_release_timeline.py
+
+      - name: Commit changes
+        id: sync
+        run: |
+          set -euo pipefail
           if [ -z "$(git status --porcelain)" ]; then
             echo "No changes to sync."
+            echo "changes=false" >> $GITHUB_OUTPUT
             exit 0
           fi
 
