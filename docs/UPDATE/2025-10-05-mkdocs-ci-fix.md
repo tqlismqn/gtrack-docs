@@ -1,0 +1,3 @@
+- ci(docs): install plugins from requirements.txt and use full git history
+- fix: mkdocs error "Config value 'plugins': The 'git-revision-date-localized' plugin is not installed"
+- note: keep plugin list in requirements.txt in sync with mkdocs.yml
