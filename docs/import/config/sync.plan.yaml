@@ -1,0 +1,18 @@
+# Sync Plan (edit after discovery PR).
+# Example:
+gtrack-frontend:
+  ref: main
+  include:
+    - docs/**
+    - **/openapi/*.{yaml,yml,json}
+    - **/README.md
+  exclude:
+    - node_modules/**
+    - **/*.bak
+gtrack-backend:
+  ref: main
+  include:
+    - docs/**
+    - spec/**
+  exclude:
+    - **/*.bak
