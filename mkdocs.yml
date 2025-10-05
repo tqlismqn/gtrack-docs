@@ -39,6 +39,7 @@ nav:
       - Frontend:
           - Overview: import/frontend/README.md
           - Notes: import/frontend/_notes/TECH_STACK.md
+      - GTrack-App-Demo (Drivers Demo): import/gtrack-app-demo/index.md
   - Update Packs:
       - 2025-10-03 — v2.9.0: ops/UPDATE_PACKS/2025-10-03-docs-update-pack-v2.9.0.md
   - Changelog: CHANGELOG.md
