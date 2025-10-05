@@ -1,2 +1,0 @@
-- fix(vercel): remove vercel.json routes to avoid mix of routing props
-- keep routing only in next.config.js (rewrites/redirects for /demo)
