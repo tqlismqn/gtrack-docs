@@ -54,32 +54,32 @@ jobs:
           sudo apt-get update -y
           sudo apt-get install -y gh jq
 
-      - name: Prepare output tree and starter plan
+      - name: Prepare output tree and starter plan (no heredoc)
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p docs/ops/IMPORT_DISCOVERY
+          mkdir -p docs/ops/IMPORT_DISCOVERY docs/import/config
+          {
+            echo "# Sync Plan (edit after discovery PR)."
+            echo "# Example:"
+            echo "gtrack-frontend:"
+            echo "  ref: main"
+            echo "  include:"
+            echo "    - docs/**"
+            echo "    - **/openapi/*.{yaml,yml,json}"
+            echo "    - **/README.md"
+            echo "  exclude:"
+            echo "    - node_modules/**"
+            echo "    - **/*.bak"
+            echo "gtrack-backend:"
+            echo "  ref: main"
+            echo "  include:"
+            echo "    - docs/**"
+            echo "    - spec/**"
+            echo "  exclude:"
+            echo "    - **/*.bak"
+          } > docs/import/config/sync.plan.yaml
           touch docs/ops/IMPORT_DISCOVERY/.keep
-          mkdir -p docs/import/config
-          cat > docs/import/config/sync.plan.yaml <<'YAML'
-# Sync Plan (edit after discovery PR).
-# Example:
-# gtrack-frontend:
-#   ref: main
-#   include:
-#     - docs/**
-#     - **/openapi/*.{yaml,yml,json}
-#     - **/README.md
-#   exclude:
-#     - node_modules/**
-# gtrack-backend:
-#   ref: main
-#   include:
-#     - docs/**
-#     - spec/**/*
-#   exclude:
-#     - **/*.bak
-YAML
 
       - name: Run discovery (scan repos)
         shell: bash
