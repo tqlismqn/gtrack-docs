@@ -17,7 +17,7 @@ on:
         required: false
         default: "roadmap"
   schedule:
-    - cron: "11 6 * * 1"   # weekly Mon 06:11 UTC
+    - cron: "11 6 * * 1"  # weekly Mon 06:11 UTC
 
 permissions:
   contents: write
@@ -29,7 +29,7 @@ jobs:
     env:
       OWNER: ${{ github.event.inputs.owner || github.repository_owner }}
       REPOS_CSV: ${{ github.event.inputs.repos || 'gtrack-frontend,gtrack-backend' }}
-      REF:  ${{ github.event.inputs.ref || '' }}
+      REF: ${{ github.event.inputs.ref || '' }}
       ROADMAP_LABEL: ${{ github.event.inputs.roadmap_label || 'roadmap' }}
     steps:
       - name: Checkout gtrack-docs
@@ -49,10 +49,10 @@ jobs:
             echo "token=${{ github.token }}" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Install gh CLI
-        uses: cli/cli@v2
-        with:
-          version: latest
+      - name: Install tools (gh, jq)
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y gh jq
 
       - name: Prepare output tree and starter plan
         shell: bash
@@ -97,7 +97,7 @@ YAML
             echo "::group::Scanning $FULL"
 
             local META=$(gh api repos/$FULL -H 'Accept: application/vnd.github+json' \
-              --jq '{full_name, private, visibility, default_branch, archived, license:(.license.spdx_id // "NONE"), pushed_at, html_url}' )
+              --jq '{full_name, private, visibility, default_branch, archived, license:(.license.spdx_id // "NONE"), pushed_at, html_url}')
             local DEFBR=$(echo "$META" | jq -r '.default_branch')
             local REF="$DEFBR"; [[ -n "$REF_IN" ]] && REF="$REF_IN"
             local LANG=$(gh api repos/$FULL/languages --jq 'to_entries|map("\(.key): \(.value)")|join(", ")' || true)
@@ -185,20 +185,6 @@ YAML
               echo "- [$n](./$b)"
             done
           } > docs/ops/IMPORT_DISCOVERY/index.md
-
-          OPS=docs/ops/.pages
-          if ! test -f "$OPS"; then
-            cat > "$OPS" <<'PAGES'
-title: Ops
-nav:
-  - Update Packs: UPDATE_PACKS/
-  - Releases: RELEASES/
-  - ROADMAP.md
-  - Import Discovery: IMPORT_DISCOVERY/
-PAGES
-          else
-            grep -q "Import Discovery:" "$OPS" || sed -i '4a\  - Import Discovery: IMPORT_DISCOVERY/' "$OPS"
-          fi
 
       - name: Commit discovery
         id: commit
