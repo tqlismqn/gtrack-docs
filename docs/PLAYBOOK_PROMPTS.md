@@ -1,7 +1,7 @@
 # G-Track — Prompt Playbook (Codex + PR SOP)
 
 Единый шаблон промптов для Codex и правила прохождения цикла **PROMPT → PR → Merge → Deploy**.  
-Применимо для репозиториев: `gtrack-docs`, `gtrack-app`, `gtrack-backend`.
+Применимо для репозиториев: `gtrack-docs`, `gtrack-frontend`, `gtrack-backend`.
 
 ---
 
@@ -15,7 +15,7 @@
 
 Required checks (по проекту):  
 - `gtrack-docs`: **Docs - Preview** (PR), **Docs - Deploy** (main)  
-- `gtrack-app` / `gtrack-backend`: **build**, **lint**, **check-docs**, **guard-readme**, **fresh-branch**, **branch-name**
+- `gtrack-frontend` / `gtrack-backend`: **build**, **lint**, **check-docs**, **guard-readme**, **fresh-branch**, **branch-name**
 
 ---
 
@@ -30,7 +30,7 @@ Required checks (по проекту):
 - After PR is green, use Squash & Merge, then delete the branch.
 
 [Repo]
-- name: <gtrack-docs | gtrack-app | gtrack-backend>
+- name: <gtrack-docs | gtrack-frontend | gtrack-backend>
 
 [Allowed paths]
 - <list files/dirs you allow to change exactly>

@@ -1,4 +1,4 @@
-# G-Track App Docs
+# G-Track Frontend Docs
 
 Навигация:
 - [Запуск](./setup.md)
