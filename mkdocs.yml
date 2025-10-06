@@ -33,8 +33,8 @@ nav:
       - Deployment: ops/DEPLOYMENT.md
       - Domains & DNS: ops/DOMAINS_DNS.md
   - Import:
-      - Backend: import/backend/index.md
-      - Frontend: import/frontend/index.md
+      - Backend: import/backend/README.md
+      - Frontend: import/frontend/README.md
   - Update Packs:
       - 2025-10-03 — v2.9.0: ops/UPDATE_PACKS/2025-10-03-docs-update-pack-v2.9.0.md
   - Changelog: CHANGELOG.md

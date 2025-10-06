@@ -57,20 +57,16 @@ jobs:
             --include="*/" \
             --include="*.md" --include="*.yaml" --include="*.yml" --include="*.json" \
             --include="*.png" --include="*.jpg" --include="*.jpeg" --include="*.svg" \
+            --exclude="index.html" \
             --exclude="*" \
             src-app/docs/  docs/import/app/  || true
           rsync -a --delete --prune-empty-dirs \
             --include="*/" \
             --include="*.md" --include="*.yaml" --include="*.yml" --include="*.json" \
             --include="*.png" --include="*.jpg" --include="*.jpeg" --include="*.svg" \
+            --exclude="index.html" \
             --exclude="*" \
             src-backend/docs/ docs/import/backend/ || true
-          if [ -f docs/import/backend/README.md ]; then
-            mv -f docs/import/backend/README.md docs/import/backend/index.md
-          fi
-          if [ -f docs/import/frontend/README.md ]; then
-            mv -f docs/import/frontend/README.md docs/import/frontend/index.md
-          fi
           touch docs/import/.keep
 
       - name: Detect changes
