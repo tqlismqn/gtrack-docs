@@ -1,0 +1,3 @@
+- fix(demo): baseHref="/" + routes from root (no /demo prefix)
+- feat(router): legacy redirect /demo/* → /* (replaceUrl)
+- ops(vercel): keep SPA fallback for deep links
