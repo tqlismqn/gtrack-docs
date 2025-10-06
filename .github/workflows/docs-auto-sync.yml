@@ -51,7 +51,7 @@ jobs:
       - name: Prepare import tree
         run: |
           set -euxo pipefail
-          mkdir -p docs/import/app docs/import/backend
+          mkdir -p docs/import/app docs/import/backend docs/import/frontend
           # Copy only useful formats
           rsync -a --delete --prune-empty-dirs \
             --include="*/" \
@@ -65,6 +65,12 @@ jobs:
             --include="*.png" --include="*.jpg" --include="*.jpeg" --include="*.svg" \
             --exclude="*" \
             src-backend/docs/ docs/import/backend/ || true
+          if [ -f docs/import/backend/README.md ]; then
+            mv -f docs/import/backend/README.md docs/import/backend/index.md
+          fi
+          if [ -f docs/import/frontend/README.md ]; then
+            mv -f docs/import/frontend/README.md docs/import/frontend/index.md
+          fi
           touch docs/import/.keep
 
       - name: Detect changes
