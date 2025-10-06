@@ -1,0 +1,3 @@
+- feat(demo): Angular 20 drivers demo at /drivers
+- added: dark/light, summary, filters, bulk ops, docs+salary card, add-form, seed/reset/random, uuid polyfill
+- deploy: Vercel static, baseHref=/drivers, routes in vercel.json

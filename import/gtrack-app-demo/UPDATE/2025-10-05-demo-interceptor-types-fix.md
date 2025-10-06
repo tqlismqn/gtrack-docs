@@ -1,3 +1,0 @@
-- fix(demo): correct docs merge to return full Record<DocKey, DriverDocumentState> (no undefined)
-- fix(demo): safe update in PUT /drivers/:id with index check and strict Driver type
-- result: Vercel build errors TS2322/TS2345 resolved
