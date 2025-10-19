@@ -1,40 +1,126 @@
 site_name: G-Track Docs
+site_url: https://docs.g-track.eu
+strict: true
+
 theme:
   name: material
   features:
-    - navigation.indexes
+    - navigation.instant
+    - navigation.tracking
+    - content.code.copy
 
 plugins:
   - search
-  - awesome-pages
-  - git-revision-date-localized:
-      type: date
-      fallback_to_build_date: true
-
-extra_css:
-  - stylesheets/layout.css
 
 nav:
   - G-Track — Обзор: index.md
-  - Releases:
-      - Timeline (combined): releases/timeline.md
-      - Backend changelog (imported): import/backend/CHANGELOG.md
-      - Frontend changelog (imported): import/frontend/CHANGELOG.md
-  - ADR:
-      - STACK: adr/ADR-STACK-0001-angular17-laravel10.md
-  - SPEC:
-      - Data Model: spec/DATA_MODEL.md
-      - API: spec/API.md
-      - UX:
-          - Drivers: spec/UX/DRIVER_CARD.md
-  - OPS:
-      - ENV Matrix: ops/ENV_MATRIX.md
-      - CI/CD: ops/CI_CD.md
-      - Deployment: ops/DEPLOYMENT.md
-      - Domains & DNS: ops/DOMAINS_DNS.md
+  - Overview: overview.md
+  - Modules:
+      - Drivers: modules/drivers/index.md
+  - API (v1 surface): api/index.md
+  - API (v0 legacy):
+      - Overview: api/v0/index.md
+      - Drivers: api/v0/drivers.md
+      - Health: api/v0/health.md
+  - Architecture:
+      - ADR: architecture/adr/2025-10-19-v2-stack.md
+      - Legacy ADR:
+          - Overview: adr/README.md
+          - ADR-0001 — App Shell First: adr/ADR-0001-app-shell-first.md
+          - ADR-0002 — Auth Strategy: adr/ADR-0002-auth-strategy.md
+          - ADR-0004 — PII Protection: adr/ADR-0004-pii-protection.md
+          - ADR-STACK-0001 — Angular17 + Laravel10: adr/ADR-STACK-0001-angular17-laravel10.md
+  - Operations:
+      - Current Overview: ops/index.md
+      - Legacy Handbook:
+          - Overview: ops/LEGACY.md
+          - ENV Matrix: ops/ENV_MATRIX.md
+          - CI/CD: ops/CI_CD.md
+          - Deployment: ops/DEPLOYMENT.md
+          - Domains & DNS: ops/DOMAINS_DNS.md
+          - Documentation SOP: ops/DOCUMENTATION_SOP.md
+          - Repo Governance: ops/REPO_GOVERNANCE.md
+          - Security Practices: ops/SECURITY_PRACTICES.md
+          - CI Offline:
+              - Offline pip: ops/CI/offline-pip.md
+              - Offline verify: ops/CI/offline-verify.md
+          - Import Discovery:
+              - Overview: ops/IMPORT_DISCOVERY/index.md
+              - gtrack-backend: ops/IMPORT_DISCOVERY/gtrack-backend.md
+              - gtrack-frontend: ops/IMPORT_DISCOVERY/gtrack-frontend.md
+          - Update Packs (legacy):
+              - Overview: ops/UPDATE_PACKS/index.md
+              - 2025-09-22 — docs update pack v1: ops/UPDATE_PACKS/2025-09-22-docs-update-pack-v1.md
+              - 2025-09-23 — docs update pack v0.3.0: ops/UPDATE_PACKS/2025-09-23-docs-update-pack-v0.3.0.md
+              - 2025-10-03 — docs update pack v2.9.0: ops/UPDATE_PACKS/2025-10-03-docs-update-pack-v2.9.0.md
+              - 2025-10-05 — gtrack recovery migration: ops/UPDATE_PACKS/2025-10-05-gtrack-recovery-migration.md
+              - docs v0.3.1: ops/UPDATE_PACKS/docs-v0.3.1.md
+              - docs v2.9: ops/UPDATE_PACKS/docs-v2.9.md
+              - docs vX.Y.(Z+1): ops/UPDATE_PACKS/docs-vX.Y.(Z+1).md
+              - drivers v0.1: ops/UPDATE_PACKS/drivers-v0.1.md
+          - Environment Snapshots:
+              - Backend: ops/env/backend.md
   - Import:
-      - Backend: import/backend/index.md
-      - Frontend: import/frontend/index.md
-  - Update Packs:
-      - 2025-10-03 — v2.9.0: ops/UPDATE_PACKS/2025-10-03-docs-update-pack-v2.9.0.md
+      - Overview: import/README.md
+      - Frontend:
+          - Overview: import/frontend/index.md
+          - Changelog: import/frontend/CHANGELOG.md
+          - Updates:
+              - 2025-10-05 — CI lint fallback: import/frontend/UPDATE/2025-10-05-ci-lint-fallback.md
+              - 2025-10-05 — Demo data source switch: import/frontend/UPDATE/2025-10-05-demo-data-source-switch.md
+              - 2025-10-05 — Demo interceptor types fix: import/frontend/UPDATE/2025-10-05-demo-interceptor-types-fix.md
+              - 2025-10-05 — Demo shell drivers: import/frontend/UPDATE/2025-10-05-demo-shell-drivers.md
+              - 2025-10-05 — Docs export fix: import/frontend/UPDATE/2025-10-05-docs-export-fix.md
+              - 2025-10-05 — ESLint9 flat: import/frontend/UPDATE/2025-10-05-eslint9-flat.md
+              - 2025-10-05 — Fix Vercel mix routing: import/frontend/UPDATE/2025-10-05-fix-vercel-mix-routing.md
+              - 2025-10-05 — Lockfile sync: import/frontend/UPDATE/2025-10-05-lockfile-sync.md
+              - 2025-10-05 — Vercel lock sync: import/frontend/UPDATE/2025-10-05-vercel-lock-sync.md
+          - Notes:
+              - Tech stack: import/frontend/_notes/TECH_STACK.md
+          - Exported Sources:
+              - gtrack-app: import/frontend/gtrack-app/index.md
+      - Backend:
+          - Overview: import/backend/index.md
+          - Changelog: import/backend/CHANGELOG.md
+          - Updates:
+              - 2025-10-05 — Laravel 12 drivers API: import/backend/UPDATE/2025-10-05-laravel12-drivers-api.md
+          - Notes:
+              - Tech stack: import/backend/_notes/TECH_STACK.md
+          - Exported Sources:
+              - gtrack-backend: import/backend/gtrack-backend/index.md
+      - gtrack-app-demo export: import/gtrack-app-demo/index.md
+      - gtrack-backend repo:
+          - README: import/gtrack-backend/README.md
+          - Legacy README: import/gtrack-backend/README.legacy.md
+      - gtrack-frontend repo:
+          - README: import/gtrack-frontend/README.md
+          - Legacy README: import/gtrack-frontend/README.legacy.md
+  - Update Packs: update-packs/index.md
   - Changelog: CHANGELOG.md
+  - Archive:
+      - Releases timeline: releases/timeline.md
+      - Playbook prompts: PLAYBOOK_PROMPTS.md
+      - Update journal:
+          - 2025-10-05 — import stubs: UPDATE/2025-10-05-import-stubs.md
+          - 2025-10-05 — mkdocs CI fix: UPDATE/2025-10-05-mkdocs-ci-fix.md
+      - SPEC (legacy):
+          - Overview: spec/index.md
+          - Data model: spec/DATA_MODEL.md
+          - API surface: spec/API.md
+          - UX:
+              - Drivers card: spec/UX/DRIVER_CARD.md
+          - API package:
+              - README: spec/api/README.md
+          - Drivers package:
+              - Overview: spec/drivers/README.md
+              - API: spec/drivers/API.md
+              - Audit & notifications: spec/drivers/AUDIT_AND_NOTIFICATIONS.md
+              - Data model: spec/drivers/DATA_MODEL.md
+              - Dev spec: spec/drivers/DRIVERS_DEV_SPEC.md
+              - Tech spec: spec/drivers/DRIVERS_TECH_SPEC.md
+              - Open questions & assumptions: spec/drivers/OPEN_QUESTIONS_AND_ASSUMPTIONS.md
+              - RBAC: spec/drivers/RBAC.md
+              - Validation: spec/drivers/VALIDATION.md
+          - Redoc:
+              - v0: spec/redoc/v0.md
+              - v1: spec/redoc/v1.md
