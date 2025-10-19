@@ -1,6 +1,6 @@
 # Sync Plan (edit after discovery PR).
 # Example:
-gtrack-frontend:
+gtrack-app:
   ref: main
   include:
     - docs/**

@@ -1,15 +1,8 @@
-name: Docs - Auto Sync to Import
+name: Docs – Auto Sync to Import
 on:
   workflow_dispatch:
-    inputs:
-      reason:
-        description: "Why sync?"
-        required: false
-      owner:
-        description: "Repos owner (default: current repo owner)"
-        required: false
   schedule:
-    - cron: "30 5 * * *"   # daily 05:30 UTC
+    - cron: "17 3 * * *"   # daily at 03:17 UTC
 
 permissions:
   contents: write
@@ -19,111 +12,60 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     env:
-      OWNER: ${{ github.event.inputs.owner || github.repository_owner }}
-      APP_REPO: ${{ github.event.inputs.owner && format('{0}/gtrack-app', github.event.inputs.owner) || format('{0}/gtrack-app', github.repository_owner) }}
-      BE_REPO:  ${{ github.event.inputs.owner && format('{0}/gtrack-backend', github.event.inputs.owner) || format('{0}/gtrack-backend', github.repository_owner) }}
+      OWNER: tqlismqn
+      FE_REPO: tqlismqn/gtrack-app
+      BE_REPO: tqlismqn/gtrack-backend
+      PR_BRANCH_PREFIX: sync
     steps:
+      # Checkout this docs repo (target)
       - name: Checkout gtrack-docs
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
+      # Guard: secret must exist
+      - name: Check secret
+        run: |
+          if [ -z "${{ secrets.SYNC_REPOS_TOKEN }}" ]; then
+            echo "::error::Secret SYNC_REPOS_TOKEN is missing in $GITHUB_REPOSITORY"; exit 1;
+          fi
+
+      # Checkout FE docs
       - name: Checkout gtrack-app (docs)
         uses: actions/checkout@v4
         with:
-          repository: ${{ env.APP_REPO }}
-          token: ${{ secrets.SYNC_TOKEN }}
-          path: src-app
-          sparse-checkout: |
-            docs
-          sparse-checkout-cone-mode: true
+          repository: ${{ env.FE_REPO }}
+          ref: main
+          path: fe
+          token: ${{ secrets.SYNC_REPOS_TOKEN }}
+          fetch-depth: 1
 
+      # Checkout BE docs
       - name: Checkout gtrack-backend (docs)
         uses: actions/checkout@v4
         with:
           repository: ${{ env.BE_REPO }}
-          token: ${{ secrets.SYNC_TOKEN }}
-          path: src-backend
-          sparse-checkout: |
-            docs
-          sparse-checkout-cone-mode: true
+          ref: main
+          path: be
+          token: ${{ secrets.SYNC_REPOS_TOKEN }}
+          fetch-depth: 1
 
-      - name: Prepare import tree
+      # Prepare import tree
+      - name: Copy FE/BE docs into import/
         run: |
-          set -euxo pipefail
-          mkdir -p docs/import/app docs/import/backend docs/import/frontend
-          # Copy only useful formats
-          rsync -a --delete --prune-empty-dirs \
-            --include="*/" \
-            --include="*.md" --include="*.yaml" --include="*.yml" --include="*.json" \
-            --include="*.png" --include="*.jpg" --include="*.jpeg" --include="*.svg" \
-            --exclude="*" \
-            src-app/docs/  docs/import/app/  || true
-          rsync -a --delete --prune-empty-dirs \
-            --include="*/" \
-            --include="*.md" --include="*.yaml" --include="*.yml" --include="*.json" \
-            --include="*.png" --include="*.jpg" --include="*.jpeg" --include="*.svg" \
-            --exclude="*" \
-            src-backend/docs/ docs/import/backend/ || true
-          if [ -f docs/import/backend/README.md ]; then
-            mv -f docs/import/backend/README.md docs/import/backend/index.md
-          fi
-          if [ -f docs/import/frontend/README.md ]; then
-            mv -f docs/import/frontend/README.md docs/import/frontend/index.md
-          fi
-          touch docs/import/.keep
+          mkdir -p docs/import/frontend/gtrack-app docs/import/backend/gtrack-backend
+          rsync -a --delete fe/docs/ docs/import/frontend/gtrack-app/ || true
+          rsync -a --delete be/docs/ docs/import/backend/gtrack-backend/ || true
+          echo "Changed files:"; git status --porcelain
 
-      - name: Detect changes
-        id: diff
-        run: |
-          set -e
-          git add -A
-          if git diff --cached --quiet; then
-            echo "changed=false" >> $GITHUB_OUTPUT
-          else
-            echo "changed=true"  >> $GITHUB_OUTPUT
-          fi
-
-      # ---------- Optional offline sanity build (if wheelhouse/lock exist) ----------
-      - name: Setup Python
-        if: steps.diff.outputs.changed == 'true'
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: "Offline install (if wheelhouse/lock present)"
-        if: steps.diff.outputs.changed == 'true'
-        run: |
-          set -e
-          if ls docs/vendor/wheels/*.whl >/dev/null 2>&1 && test -s docs/requirements.lock.txt; then
-            export PIP_NO_INDEX=1
-            export PIP_FIND_LINKS=docs/vendor/wheels
-            python -m pip install --no-index --find-links docs/vendor/wheels -r docs/requirements.lock.txt
-            mkdir -p docs/import
-            [ -f docs/import/index.md ] || printf '# Import (autogen)\n\nPlaceholder.\n' > docs/import/index.md
-            python -m mkdocs build --strict
-          else
-            echo "::notice ::No wheelhouse/lock on branch; skipping offline build but creating PR."
-          fi
-
+      # Create PR to this repo
       - name: Create Pull Request
-        if: steps.diff.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@v6
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: |
-            docs(sync): import docs from app/backend → docs/import/
+          token: ${{ secrets.SYNC_REPOS_TOKEN }}
+          commit-message: "docs(sync): import from gtrack-app & gtrack-backend"
           title: "docs(sync): import from gtrack-app & gtrack-backend"
           body: |
-            Automated sync of /docs from:
-            - ${{ env.APP_REPO }}
-            - ${{ env.BE_REPO }}
-
-            Includes only (*.md, *.yaml, *.yml, *.json, images).
-            Performed offline sanity build when wheelhouse/lock present.
-          labels: codex, docs, sync
-          signoff: true
-          branch: ci/docs-auto-sync
+            Auto-sync from `${{ env.FE_REPO }}` and `${{ env.BE_REPO }}`.
+            Source branches: main.
+          branch: ${{ env.PR_BRANCH_PREFIX }}/combined
           branch-suffix: timestamp
-          add-paths: |
-            docs/import/**
+          delete-branch: true
