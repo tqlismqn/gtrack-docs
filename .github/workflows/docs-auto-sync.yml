@@ -18,6 +18,8 @@ jobs:
     steps:
       - name: Checkout gtrack-docs
         uses: actions/checkout@v4
+        with:
+          submodules: false
 
       - name: Guard secret
         run: |
@@ -26,6 +28,7 @@ jobs:
       - name: Checkout gtrack-app (docs)
         uses: actions/checkout@v4
         with:
+          submodules: false
           repository: ${{ env.FE_REPO }}
           ref: main
           path: fe
@@ -35,6 +38,7 @@ jobs:
       - name: Checkout gtrack-backend (docs)
         uses: actions/checkout@v4
         with:
+          submodules: false
           repository: ${{ env.BE_REPO }}
           ref: main
           path: be
