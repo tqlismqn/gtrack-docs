@@ -27,11 +27,13 @@ jobs:
       - name: Checkout docs
         uses: actions/checkout@v4
         with:
+          submodules: false
           fetch-depth: 0
 
       - name: Checkout backend
         uses: actions/checkout@v4
         with:
+          submodules: false
           repository: tqlismqn/gtrack-backend
           token: ${{ env.SYNC_REPOS_TOKEN }}
           path: _src/backend
@@ -40,6 +42,7 @@ jobs:
       - name: Checkout frontend
         uses: actions/checkout@v4
         with:
+          submodules: false
           repository: tqlismqn/gtrack-frontend
           token: ${{ env.SYNC_REPOS_TOKEN }}
           path: _src/frontend
