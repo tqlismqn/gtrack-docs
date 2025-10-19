@@ -2,7 +2,7 @@ name: Docs – Auto Sync to Import
 on:
   workflow_dispatch:
   schedule:
-    - cron: "17 3 * * *"   # daily at 03:17 UTC
+    - cron: "17 3 * * *"   # daily
 
 permissions:
   contents: write
@@ -12,23 +12,17 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     env:
-      OWNER: tqlismqn
       FE_REPO: tqlismqn/gtrack-app
       BE_REPO: tqlismqn/gtrack-backend
       PR_BRANCH_PREFIX: sync
     steps:
-      # Checkout this docs repo (target)
       - name: Checkout gtrack-docs
         uses: actions/checkout@v4
 
-      # Guard: secret must exist
-      - name: Check secret
+      - name: Guard secret
         run: |
-          if [ -z "${{ secrets.SYNC_REPOS_TOKEN }}" ]; then
-            echo "::error::Secret SYNC_REPOS_TOKEN is missing in $GITHUB_REPOSITORY"; exit 1;
-          fi
+          [ -n "${{ secrets.SYNC_REPOS_TOKEN }}" ] || { echo "::error::Secret SYNC_REPOS_TOKEN missing"; exit 1; }
 
-      # Checkout FE docs
       - name: Checkout gtrack-app (docs)
         uses: actions/checkout@v4
         with:
@@ -38,7 +32,6 @@ jobs:
           token: ${{ secrets.SYNC_REPOS_TOKEN }}
           fetch-depth: 1
 
-      # Checkout BE docs
       - name: Checkout gtrack-backend (docs)
         uses: actions/checkout@v4
         with:
@@ -48,24 +41,51 @@ jobs:
           token: ${{ secrets.SYNC_REPOS_TOKEN }}
           fetch-depth: 1
 
-      # Prepare import tree
-      - name: Copy FE/BE docs into import/
+      - name: Copy into import tree
         run: |
           mkdir -p docs/import/frontend/gtrack-app docs/import/backend/gtrack-backend
           rsync -a --delete fe/docs/ docs/import/frontend/gtrack-app/ || true
           rsync -a --delete be/docs/ docs/import/backend/gtrack-backend/ || true
-          echo "Changed files:"; git status --porcelain
 
-      # Create PR to this repo
+      - name: Generate import indexes
+        shell: bash
+        run: |
+          set -euo pipefail
+          gen_index () {
+            local dir="$1" title="$2" intro="$3"
+            mkdir -p "$dir"
+            {
+              echo "# $title"
+              echo
+              echo "$intro"
+              echo "Список репозиториев формируется автоматически при каждом запуске sync."
+              echo
+              shopt -s nullglob
+              local subdirs=("$dir"/*/)
+              if [ ${#subdirs[@]} -eq 0 ]; then
+                echo "_Нет импортированных репозиториев._"
+              else
+                for d in "${subdirs[@]}"; do
+                  local bn
+                  bn=$(basename "$d")
+                  echo "- [${bn}](${bn}/index.md)"
+                done
+              fi
+            } > "$dir/index.md"
+          }
+          gen_index docs/import/frontend "Frontend — Imported Docs" "Автосинхронизация складывает сюда содержимое \`/docs/**\` из репозиториев фронтенда."
+          gen_index docs/import/backend "Backend — Imported Docs" "Автосинхронизация складывает сюда содержимое \`/docs/**\` из репозиториев бэкенда."
+
+      - name: Show summary
+        run: git status --short
+
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.SYNC_REPOS_TOKEN }}
-          commit-message: "docs(sync): import from gtrack-app & gtrack-backend"
-          title: "docs(sync): import from gtrack-app & gtrack-backend"
-          body: |
-            Auto-sync from `${{ env.FE_REPO }}` and `${{ env.BE_REPO }}`.
-            Source branches: main.
+          commit-message: "docs(sync): import FE/BE docs + regenerate import indexes"
+          title: "docs(sync): import FE/BE docs"
+          body: "Auto-sync from `${{ env.FE_REPO }}` and `${{ env.BE_REPO }}`."
           branch: ${{ env.PR_BRANCH_PREFIX }}/combined
           branch-suffix: timestamp
           delete-branch: true
