@@ -6,7 +6,7 @@
 - Архитектура и решения (ADR)
 - Спецификации API и UX
 - Операции: ENV, CI/CD, домены, правила репозиториев
-- Импортируемые доки из кодовых репозиториев (`import/gtrack-frontend`, `import/gtrack-backend`)
+- Импортируемые доки из кодовых репозиториев (`import/gtrack-app`, `import/gtrack-backend`)
 
 ## Локальный запуск
 ```bash
