@@ -90,6 +90,7 @@ jobs:
           commit-message: "docs(sync): import FE/BE docs + regenerate import indexes"
           title: "docs(sync): import FE/BE docs"
           body: "Auto-sync from `${{ env.FE_REPO }}` and `${{ env.BE_REPO }}`."
+          labels: docs,sync,automerge
           branch: ${{ env.PR_BRANCH_PREFIX }}/combined
           branch-suffix: timestamp
           delete-branch: true
