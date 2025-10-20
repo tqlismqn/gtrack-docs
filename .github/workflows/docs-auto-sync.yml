@@ -107,6 +107,7 @@ jobs:
         run: git status --short
 
       - name: Create Pull Request
+        id: cpr
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.SYNC_REPOS_TOKEN }}
@@ -117,3 +118,19 @@ jobs:
           branch: ${{ env.PR_BRANCH_PREFIX }}/combined
           branch-suffix: timestamp
           delete-branch: true
+
+      - name: Auto-close older sync PRs
+        if: ${{ steps.cpr.outputs.pull-request-number != '' }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const current = Number('${{ steps.cpr.outputs.pull-request-number }}');
+            const {owner, repo} = context.repo;
+            const prs = await github.paginate(github.rest.pulls.list, {owner, repo, state: 'open', per_page: 100});
+            for (const pr of prs) {
+              if (pr.number !== current && pr.title.startsWith('docs(sync):')) {
+                await github.rest.issues.addLabels({owner, repo, issue_number: pr.number, labels: ['superseded']}).catch(()=>{});
+                await github.rest.pulls.update({owner, repo, pull_number: pr.number, state: 'closed'});
+                core.info(`Closed stale sync PR #${pr.number}`);
+              }
+            }
