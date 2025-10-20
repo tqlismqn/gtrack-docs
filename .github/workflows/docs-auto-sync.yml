@@ -51,21 +51,42 @@ jobs:
           rsync -a --delete fe/docs/ docs/import/frontend/gtrack-app/ || true
           rsync -a --delete be/docs/ docs/import/backend/gtrack-backend/ || true
 
+      - name: Generate per-repo indexes
+        shell: bash
+        run: |
+          set -euo pipefail
+          make_idx () {
+            dir="$1"; title="$2"
+            mkdir -p "$dir"
+            {
+              echo "# ${title} — импортированные файлы"
+              echo
+              shopt -s nullglob
+              for f in "$dir"/*.md; do
+                bn=$(basename "$f")
+                [ "$bn" = "index.md" ] && continue
+                echo "- [${bn}](${bn})"
+              done
+            } > "$dir/index.md"
+          }
+          make_idx docs/import/frontend/gtrack-app "gtrack-app"
+          make_idx docs/import/backend/gtrack-backend "gtrack-backend"
+
       - name: Generate import indexes
         shell: bash
         run: |
           set -euo pipefail
-          gen_index () {
+          gen_root () {
             local dir="$1" title="$2" intro="$3"
             mkdir -p "$dir"
+            shopt -s nullglob
+            local subdirs=("$dir"/*/)
             {
-              echo "# $title"
+              echo "# ${title}"
               echo
-              echo "$intro"
-              echo "Список репозиториев формируется автоматически при каждом запуске sync."
+              echo "${intro}"
               echo
-              shopt -s nullglob
-              local subdirs=("$dir"/*/)
+              echo "## Репозитории"
               if [ ${#subdirs[@]} -eq 0 ]; then
                 echo "_Нет импортированных репозиториев._"
               else
@@ -75,10 +96,12 @@ jobs:
                   echo "- [${bn}](${bn}/index.md)"
                 done
               fi
+              echo
+              echo "> Список файлов внутри репозитория показывается на его странице."
             } > "$dir/index.md"
           }
-          gen_index docs/import/frontend "Frontend — Imported Docs" "Автосинхронизация складывает сюда содержимое \`/docs/**\` из репозиториев фронтенда."
-          gen_index docs/import/backend "Backend — Imported Docs" "Автосинхронизация складывает сюда содержимое \`/docs/**\` из репозиториев бэкенда."
+          gen_root docs/import/frontend "Frontend — Imported Docs" "Автосинхронизация складывает сюда содержимое \`/docs/**\` из фронтенд-репозиториев."
+          gen_root docs/import/backend "Backend — Imported Docs" "Автосинхронизация складывает сюда содержимое \`/docs/**\` из бэкенд-репозиториев."
 
       - name: Show summary
         run: git status --short
