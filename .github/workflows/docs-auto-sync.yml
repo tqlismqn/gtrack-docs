@@ -2,7 +2,7 @@ name: Docs – Auto Sync to Import
 on:
   workflow_dispatch:
   schedule:
-    - cron: "17 3 * * *"   # daily
+    - cron: "17 3 * * *"
   repository_dispatch:
     types: [sync-import]
 
@@ -20,8 +20,6 @@ jobs:
     steps:
       - name: Checkout gtrack-docs
         uses: actions/checkout@v4
-        with:
-          submodules: false
 
       - name: Guard secret
         run: |
@@ -30,7 +28,6 @@ jobs:
       - name: Checkout gtrack-app (docs)
         uses: actions/checkout@v4
         with:
-          submodules: false
           repository: ${{ env.FE_REPO }}
           ref: main
           path: fe
@@ -40,7 +37,6 @@ jobs:
       - name: Checkout gtrack-backend (docs)
         uses: actions/checkout@v4
         with:
-          submodules: false
           repository: ${{ env.BE_REPO }}
           ref: main
           path: be
@@ -53,86 +49,37 @@ jobs:
           rsync -a --delete fe/docs/ docs/import/frontend/gtrack-app/ || true
           rsync -a --delete be/docs/ docs/import/backend/gtrack-backend/ || true
 
-      - name: Generate per-repo indexes
-        shell: bash
+      - name: Write meta SHAs (guarantee diff on any upstream change)
         run: |
-          set -euo pipefail
-          make_idx () {
-            dir="$1"; title="$2"
-            mkdir -p "$dir"
+          mkdir -p docs/import/_meta/frontend docs/import/_meta/backend
+          git -C fe rev-parse HEAD > docs/import/_meta/frontend/gtrack-app.sha
+          git -C be rev-parse HEAD > docs/import/_meta/backend/gtrack-backend.sha
+
+      - name: Generate simple indexes
+        run: |
+          gen_idx () {
+            d="$1"; t="$2"; mkdir -p "$d"
             {
-              echo "# ${title} — импортированные файлы"
+              echo "# ${t} — импортированные файлы"
               echo
               shopt -s nullglob
-              for f in "$dir"/*.md; do
+              for f in "$d"/*.md; do
                 bn=$(basename "$f")
                 [ "$bn" = "index.md" ] && continue
                 echo "- [${bn}](${bn})"
               done
-            } > "$dir/index.md"
+            } > "$d/index.md"
           }
-          make_idx docs/import/frontend/gtrack-app "gtrack-app"
-          make_idx docs/import/backend/gtrack-backend "gtrack-backend"
-
-      - name: Generate import indexes
-        shell: bash
-        run: |
-          set -euo pipefail
-          gen_root () {
-            local dir="$1" title="$2" intro="$3"
-            mkdir -p "$dir"
-            shopt -s nullglob
-            local subdirs=("$dir"/*/)
-            {
-              echo "# ${title}"
-              echo
-              echo "${intro}"
-              echo
-              echo "## Репозитории"
-              if [ ${#subdirs[@]} -eq 0 ]; then
-                echo "_Нет импортированных репозиториев._"
-              else
-                for d in "${subdirs[@]}"; do
-                  local bn
-                  bn=$(basename "$d")
-                  echo "- [${bn}](${bn}/index.md)"
-                done
-              fi
-              echo
-              echo "> Список файлов внутри репозитория показывается на его странице."
-            } > "$dir/index.md"
-          }
-          gen_root docs/import/frontend "Frontend — Imported Docs" "Автосинхронизация складывает сюда содержимое \`/docs/**\` из фронтенд-репозиториев."
-          gen_root docs/import/backend "Backend — Imported Docs" "Автосинхронизация складывает сюда содержимое \`/docs/**\` из бэкенд-репозиториев."
-
-      - name: Show summary
-        run: git status --short
+          gen_idx docs/import/frontend/gtrack-app "gtrack-app"
+          gen_idx docs/import/backend/gtrack-backend "gtrack-backend"
 
       - name: Create Pull Request
-        id: cpr
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.SYNC_REPOS_TOKEN }}
-          commit-message: "docs(sync): import FE/BE docs + regenerate import indexes"
+          commit-message: "docs(sync): import from gtrack-app & gtrack-backend"
           title: "docs(sync): import FE/BE docs"
           body: "Auto-sync from `${{ env.FE_REPO }}` and `${{ env.BE_REPO }}`."
+          branch: ${{ env.PR_BRANCH_PREFIX }}/combined-$(date +%Y%m%d%H%M)
           labels: docs,sync,automerge
-          branch: ${{ env.PR_BRANCH_PREFIX }}/combined
-          branch-suffix: timestamp
           delete-branch: true
-
-      - name: Auto-close older sync PRs
-        if: ${{ steps.cpr.outputs.pull-request-number != '' }}
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const current = Number('${{ steps.cpr.outputs.pull-request-number }}');
-            const {owner, repo} = context.repo;
-            const prs = await github.paginate(github.rest.pulls.list, {owner, repo, state: 'open', per_page: 100});
-            for (const pr of prs) {
-              if (pr.number !== current && pr.title.startsWith('docs(sync):')) {
-                await github.rest.issues.addLabels({owner, repo, issue_number: pr.number, labels: ['superseded']}).catch(()=>{});
-                await github.rest.pulls.update({owner, repo, pull_number: pr.number, state: 'closed'});
-                core.info(`Closed stale sync PR #${pr.number}`);
-              }
-            }
