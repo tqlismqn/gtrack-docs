@@ -19,3 +19,8 @@
 
 ## Sync probe (20251021071808)
 - Touch from reset workflow to exercise autosync.
+
+## PR body policy quick-reference (20251021)
+- Каждое открытие PR проверяется guard, что тело начинается с блока "Docs updated".
+- Шаблон лежит в `.github/PULL_REQUEST_TEMPLATE.md` и должен использоваться без сокращений.
+- Если нет изменений в `/docs/**`, опиши причину прямо в этом блоке.
