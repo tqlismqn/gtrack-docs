@@ -138,5 +138,6 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
-# Local sources (was submodules)
+# Legacy submodules (removed in favor of autosync)
+
 _src/
