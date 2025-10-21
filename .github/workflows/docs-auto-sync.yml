@@ -72,6 +72,9 @@ jobs:
           }
           gen_idx docs/import/frontend/gtrack-app "gtrack-app"
           gen_idx docs/import/backend/gtrack-backend "gtrack-backend"
+      - name: Cleanup temp repos
+        run: |
+          rm -rf fe be || true
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
@@ -80,6 +83,7 @@ jobs:
           commit-message: "docs(sync): import from gtrack-app & gtrack-backend"
           title: "docs(sync): import FE/BE docs"
           body: "Auto-sync from `${{ env.FE_REPO }}` and `${{ env.BE_REPO }}`."
-          branch: ${{ env.PR_BRANCH_PREFIX }}/combined-$(date +%Y%m%d%H%M)
+          branch: ${{ env.PR_BRANCH_PREFIX }}/combined
+          branch-suffix: timestamp
           labels: docs,sync,automerge
           delete-branch: true
