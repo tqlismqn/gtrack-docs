@@ -1,7 +1,3 @@
-concurrency:
-  group: docs-sync
-  cancel-in-progress: true
-
 name: CI
 
 on:
