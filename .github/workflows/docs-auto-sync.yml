@@ -1,3 +1,7 @@
+concurrency:
+  group: docs-sync
+  cancel-in-progress: true
+
 name: Docs – Auto Sync to Import
 on:
   workflow_dispatch:
