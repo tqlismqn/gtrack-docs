@@ -31,7 +31,10 @@ nav:
       - Drivers: api/v0/drivers.md
       - Health: api/v0/health.md
   - Architecture:
-      - ADR: architecture/adr/2025-10-19-v2-stack.md
+      - Overview: architecture/index.md
+      - ADR:
+          - V2 Technology Stack (2025-10-24): architecture/adr/2025-10-24-v2-technology-stack.md
+          - V2 Stack (2025-10-19): architecture/adr/2025-10-19-v2-stack.md
       - Legacy ADR:
           - Overview: adr/README.md
           - ADR-0001 — App Shell First: adr/ADR-0001-app-shell-first.md
