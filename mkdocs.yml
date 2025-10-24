@@ -51,9 +51,13 @@ nav:
   # Architecture & Technical Decisions
   - Architecture:
       - Overview: architecture/index.md
-      - Current Stack (V2):
-          - Technology Stack (2025-10-24): architecture/adr/2025-10-24-v2-technology-stack.md
-          - Initial V2 Decision (2025-10-19): architecture/adr/2025-10-19-v2-stack.md
+      - System Documentation:
+          - System Overview: architecture/system-overview.md
+          - Business Processes: architecture/business-processes.md
+          - Data Flow: architecture/data-flow.md
+      - ADR:
+          - V2 Technology Stack (2025-10-24): architecture/adr/2025-10-24-v2-technology-stack.md
+          - V2 Stack (2025-10-19): architecture/adr/2025-10-19-v2-stack.md
   
   # Operations & Deployment
   - Operations:
