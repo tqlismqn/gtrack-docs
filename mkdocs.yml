@@ -65,7 +65,7 @@ nav:
       - Frontend: import/frontend/index.md
       - Backend: import/backend/index.md
   - Update Packs: update-packs/index.md
-  - Changelog: CHANGELOG.md
+  - Changelog: docs/CHANGELOG.md
   - Archive:
       - Releases timeline: releases/timeline.md
       - Playbook prompts: PLAYBOOK_PROMPTS.md

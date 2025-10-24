@@ -1,4 +1,7 @@
-# Документация — Changelog
+# Changelog
+
+Список автоматических синков документации из FE/BE репозиториев.
+Формат: `YYYY-MM-DD HH:MM UTC — <title> — by @actor — #PR (merge: <sha>)`
 
 ## docs-v2.9.0 — 2025-10-03
 - ADR-STACK-0001: переход на Angular 17 + Laravel 10 + PostgreSQL 16
