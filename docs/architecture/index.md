@@ -17,6 +17,14 @@ ADRs document significant architectural decisions made during the development of
 ### Legacy Decisions (Archive)
 Historical ADRs from OLD version are preserved in the [Legacy ADR collection](../adr/README.md) for reference.
 
+## System Documentation
+
+Comprehensive guides explaining how G-Track works:
+
+- **[System Overview](system-overview.md)** - High-level architecture, module relationships, technology layers
+- **[Business Processes](business-processes.md)** - How business workflows map to system (order lifecycle, driver management, credit limits)
+- **[Data Flow](data-flow.md)** - How data moves through the system (request/response cycles, automated jobs, real-time updates)
+
 ## Key Architectural Principles
 
 ### 1. Separation of Concerns
