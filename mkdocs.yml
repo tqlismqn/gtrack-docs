@@ -17,6 +17,14 @@ nav:
   - Overview: overview.md
   - Modules:
       - Drivers: modules/drivers/index.md
+      - Customers:
+          - Overview: modules/customers/index.md
+          - Business Logic: modules/customers/business-logic.md
+      - Orders:
+          - Overview: modules/orders/index.md
+          - Business Logic: modules/orders/business-logic.md
+      - Invoices: modules/invoices/index.md
+      - Vehicles: modules/vehicles/index.md
   - API (v1 surface): api/index.md
   - API (v0 legacy):
       - Overview: api/v0/index.md
