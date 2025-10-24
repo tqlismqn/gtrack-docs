@@ -36,7 +36,9 @@ nav:
       - Orders (Coming Soon):
           - Overview: modules/orders/index.md
           - Business Logic: modules/orders/business-logic.md
-      - Invoices (Coming Soon): modules/invoices/index.md
+      - Invoices (Coming Soon):
+          - Overview: modules/invoices/index.md
+          - Business Logic: modules/invoices/business-logic.md
       - Vehicles & Trailers (Next Priority): modules/vehicles/index.md
   
   # API Documentation
