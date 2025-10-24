@@ -13,94 +13,66 @@ plugins:
   - search
 
 nav:
-  - G-Track — Обзор: index.md
+  # Main Documentation
+  - Home: index.md
   - Overview: overview.md
+  
+  # Core Modules (V2)
   - Modules:
-      - Drivers: modules/drivers/index.md
-      - Customers:
+      - Overview: modules/drivers/index.md  # Temporary redirect until we have modules/index.md
+      - Drivers (In Development):
+          - Overview: modules/drivers/index.md
+          - Technical Spec: spec/drivers/DRIVERS_TECH_SPEC.md
+          - Data Model: spec/drivers/DATA_MODEL.md
+          - API Specification: spec/drivers/API.md
+          - RBAC: spec/drivers/RBAC.md
+          - Validation: spec/drivers/VALIDATION.md
+          - Audit & Notifications: spec/drivers/AUDIT_AND_NOTIFICATIONS.md
+          - UX Guidelines: spec/UX/DRIVER_CARD.md
+          - Glossary: spec/drivers/README.md
+      - Customers (Coming Soon):
           - Overview: modules/customers/index.md
           - Business Logic: modules/customers/business-logic.md
-      - Orders:
+      - Orders (Coming Soon):
           - Overview: modules/orders/index.md
           - Business Logic: modules/orders/business-logic.md
-      - Invoices: modules/invoices/index.md
-      - Vehicles: modules/vehicles/index.md
-  - API (v1 surface): api/index.md
-  - API (v0 legacy):
-      - Overview: api/v0/index.md
-      - Drivers: api/v0/drivers.md
-      - Health: api/v0/health.md
+      - Invoices (Coming Soon): modules/invoices/index.md
+      - Vehicles & Trailers (Next Priority): modules/vehicles/index.md
+  
+  # API Documentation
+  - API Reference:
+      - Overview: api/index.md
+      - v1 (Surface API): api/index.md
+      - v0 (Current):
+          - Overview: api/v0/index.md
+          - Drivers: api/v0/drivers.md
+          - Health Check: api/v0/health.md
+  
+  # Architecture & Technical Decisions
   - Architecture:
       - Overview: architecture/index.md
-      - ADR:
-          - V2 Technology Stack (2025-10-24): architecture/adr/2025-10-24-v2-technology-stack.md
-          - V2 Stack (2025-10-19): architecture/adr/2025-10-19-v2-stack.md
-      - Legacy ADR:
-          - Overview: adr/README.md
-          - ADR-0001 — App Shell First: adr/ADR-0001-app-shell-first.md
-          - ADR-0002 — Auth Strategy: adr/ADR-0002-auth-strategy.md
-          - ADR-0004 — PII Protection: adr/ADR-0004-pii-protection.md
-          - ADR-STACK-0001 — Angular17 + Laravel10: adr/ADR-STACK-0001-angular17-laravel10.md
+      - Current Stack (V2):
+          - Technology Stack (2025-10-24): architecture/adr/2025-10-24-v2-technology-stack.md
+          - Initial V2 Decision (2025-10-19): architecture/adr/2025-10-19-v2-stack.md
+  
+  # Operations & Deployment
   - Operations:
-      - Current Overview: ops/index.md
-      - Legacy Handbook:
-          - Overview: ops/LEGACY.md
-          - ENV Matrix: ops/ENV_MATRIX.md
-          - CI/CD: ops/CI_CD.md
-          - Deployment: ops/DEPLOYMENT.md
-          - Domains & DNS: ops/DOMAINS_DNS.md
-          - Documentation SOP: ops/DOCUMENTATION_SOP.md
-          - Repo Governance: ops/REPO_GOVERNANCE.md
-          - Security Practices: ops/SECURITY_PRACTICES.md
-          - CI Offline:
-              - Offline pip: ops/CI/offline-pip.md
-              - Offline verify: ops/CI/offline-verify.md
-          - Import Discovery:
-              - Overview: ops/IMPORT_DISCOVERY/index.md
-              - gtrack-backend: ops/IMPORT_DISCOVERY/gtrack-backend.md
-              - gtrack-frontend: ops/IMPORT_DISCOVERY/gtrack-frontend.md
-          - Update Packs (legacy):
-              - Overview: ops/UPDATE_PACKS/index.md
-              - 2025-09-22 — docs update pack v1: ops/UPDATE_PACKS/2025-09-22-docs-update-pack-v1.md
-              - 2025-09-23 — docs update pack v0.3.0: ops/UPDATE_PACKS/2025-09-23-docs-update-pack-v0.3.0.md
-              - 2025-10-03 — docs update pack v2.9.0: ops/UPDATE_PACKS/2025-10-03-docs-update-pack-v2.9.0.md
-              - 2025-10-05 — gtrack recovery migration: ops/UPDATE_PACKS/2025-10-05-gtrack-recovery-migration.md
-              - docs v0.3.1: ops/UPDATE_PACKS/docs-v0.3.1.md
-              - docs v2.9: ops/UPDATE_PACKS/docs-v2.9.md
-              - docs vX.Y.(Z+1): ops/UPDATE_PACKS/docs-vX.Y.(Z+1).md
-              - drivers v0.1: ops/UPDATE_PACKS/drivers-v0.1.md
-          - Environment Snapshots:
-              - Backend: ops/env/backend.md
-  - Import:
-      - Overview: import/README.md
+      - Overview: ops/index.md
+  
+  # Imported Documentation (Auto-sync)
+  - Development Docs:
       - Frontend: import/frontend/index.md
       - Backend: import/backend/index.md
-  - Update Packs: update-packs/index.md
-  - Changelog: CHANGELOG.md
-  - Archive:
-      - Releases timeline: releases/timeline.md
-      - Playbook prompts: PLAYBOOK_PROMPTS.md
-      - Update journal:
-          - 2025-10-05 — import stubs: UPDATE/2025-10-05-import-stubs.md
-          - 2025-10-05 — mkdocs CI fix: UPDATE/2025-10-05-mkdocs-ci-fix.md
-      - SPEC (legacy):
-          - Overview: spec/index.md
-          - Data model: spec/DATA_MODEL.md
-          - API surface: spec/API.md
-          - UX:
-              - Drivers card: spec/UX/DRIVER_CARD.md
-          - API package:
-              - README: spec/api/README.md
-          - Drivers package:
-              - Overview: spec/drivers/README.md
-              - API: spec/drivers/API.md
-              - Audit & notifications: spec/drivers/AUDIT_AND_NOTIFICATIONS.md
-              - Data model: spec/drivers/DATA_MODEL.md
-              - Dev spec: spec/drivers/DRIVERS_DEV_SPEC.md
-              - Tech spec: spec/drivers/DRIVERS_TECH_SPEC.md
-              - Open questions & assumptions: spec/drivers/OPEN_QUESTIONS_AND_ASSUMPTIONS.md
-              - RBAC: spec/drivers/RBAC.md
-              - Validation: spec/drivers/VALIDATION.md
-          - Redoc:
-              - v0: spec/redoc/v0.md
-              - v1: spec/redoc/v1.md
+  
+  # Release Management
+  - Releases:
+      - Changelog: CHANGELOG.md
+      - Update Packs: update-packs/index.md
+  
+  # Legacy & Archive
+  - Archive (OLD Version):
+      - About Archive: archive/index.md
+      - Legacy ADRs:
+          - Overview: archive/legacy-adr/index.md
+          # Note: Individual legacy ADR files can be accessed via direct links
+          # We don't list all of them here to keep navigation clean
