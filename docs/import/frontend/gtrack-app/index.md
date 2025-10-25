@@ -2,3 +2,4 @@
 
 - [CHANGELOG.md](CHANGELOG.md)
 - [DEV_NOTES.md](DEV_NOTES.md)
+- [design-system.md](design-system.md)
