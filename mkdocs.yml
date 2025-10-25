@@ -40,7 +40,14 @@ nav:
           - Overview: modules/invoices/index.md
           - Business Logic: modules/invoices/business-logic.md
       - Vehicles & Trailers (Next Priority): modules/vehicles/index.md
-  
+
+  - Design System:
+      - Overview: design-system/index.md
+      - Foundation: design-system/foundation.md
+      - Components: design-system/components.md
+      - Layout: design-system/layout.md
+      - Icons: design-system/icons.md
+
   # API Documentation
   - API Reference:
       - Overview: api/index.md
