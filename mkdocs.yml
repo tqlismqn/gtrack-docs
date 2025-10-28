@@ -16,6 +16,7 @@ nav:
   # Main Documentation
   - Home: index.md
   - Overview: overview.md
+  - Master Specification: master-specification.md
   
   # Core Modules (V2)
   - Modules:
