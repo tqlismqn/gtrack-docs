@@ -1,2 +1,0 @@
-- docs(import): add stub pages for nav targets (backend/frontend changelog, app-demo index)
-- reason: mkdocs --strict failed due to missing files referenced in nav
