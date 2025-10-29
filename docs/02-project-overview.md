@@ -1,23 +1,11 @@
-# Project Overview | Обзор проекта
+# Project Overview
 
----
+> **Status:** 🔄 Content will be filled from Master Specification v3.1
 
-## 🇬🇧 English
-
-> **Status:** 🔄 Content being filled from Master Specification v3.1
-
-[Content from Master Spec section 2: Project Overview (lines 63-133)]
-
----
-
-## 🇷🇺 Русский
-
-> **Статус:** 🔄 Содержимое заполняется из Мастер-спецификации v3.1
-
-[Содержимое из Мастер-спецификации раздел 2: Project Overview (строки 63-133)]
+[Content from Master Spec section 2: Project Overview]
 
 ---
 
 **Last Updated:** October 29, 2025
-**Version:** 2.0.0
+**Version:** 2.0.1
 **Source:** Master Specification v3.1, Section 2

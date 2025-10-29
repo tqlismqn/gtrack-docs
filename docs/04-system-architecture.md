@@ -1,23 +1,11 @@
-# System Architecture | Архитектура системы
+# System Architecture
 
----
+> **Status:** 🔄 Content will be filled from Master Specification v3.1
 
-## 🇬🇧 English
-
-> **Status:** 🔄 Content being filled from Master Specification v3.1
-
-[Content from Master Spec section 4: System Architecture (lines 227-375)]
-
----
-
-## 🇷🇺 Русский
-
-> **Статус:** 🔄 Содержимое заполняется из Мастер-спецификации v3.1
-
-[Содержимое из Мастер-спецификации раздел 4: System Architecture (строки 227-375)]
+[Content from Master Spec section 4: System Architecture]
 
 ---
 
 **Last Updated:** October 29, 2025
-**Version:** 2.0.0
+**Version:** 2.0.1
 **Source:** Master Specification v3.1, Section 4

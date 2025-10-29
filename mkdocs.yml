@@ -1,4 +1,4 @@
-site_name: G-Track TMS Documentation | Документация G-Track TMS
+site_name: G-Track TMS Documentation
 site_description: Complete technical and business documentation for G-Track Transport Management System
 site_author: G-Track Development Team
 site_url: https://docs.g-track.eu
@@ -100,37 +100,37 @@ markdown_extensions:
 
 # Navigation Structure
 nav:
-  - Home | Главная: index.md
+  - Home: index.md
 
-  - System Foundation | Основы системы:
-      - Executive Summary | Краткое изложение: 01-executive-summary.md
-      - Project Overview | Обзор проекта: 02-project-overview.md
-      - Technology Stack | Технологический стек: 03-technology-stack.md
-      - System Architecture | Архитектура системы: 04-system-architecture.md
-      - Authentication | Аутентификация: 05-authentication.md
-      - Onboarding | Онбординг: 06-onboarding.md
+  - System Foundation:
+      - Executive Summary: 01-executive-summary.md
+      - Project Overview: 02-project-overview.md
+      - Technology Stack: 03-technology-stack.md
+      - System Architecture: 04-system-architecture.md
+      - Authentication: 05-authentication.md
+      - Onboarding: 06-onboarding.md
 
-  - Core Modules | Основные модули:
-      - Drivers Module | Модуль водителей:
-          - Overview | Обзор: 07-drivers-module/index.md
-          - Business Logic | Бизнес-логика: 07-drivers-module/business-logic.md
-          - Document Types | Типы документов: 07-drivers-module/document-types.md
-          - UI/UX Design | UI/UX дизайн: 07-drivers-module/ui-ux.md
-          - API Specification | API спецификация: 07-drivers-module/api-spec.md
-          - History & Logs | История и логи: 07-drivers-module/history-logs.md
-      - Vehicles Module | Модуль транспорта: 08-vehicles-module.md
-      - Customers Module | Модуль клиентов: 09-customers-module.md
-      - Orders Module | Модуль заказов: 10-orders-module.md
-      - Invoices Module | Модуль счетов: 11-invoices-module.md
+  - Core Modules:
+      - Drivers Module:
+          - Overview: 07-drivers-module/index.md
+          - Business Logic: 07-drivers-module/business-logic.md
+          - Document Types: 07-drivers-module/document-types.md
+          - UI/UX Design: 07-drivers-module/ui-ux.md
+          - API Specification: 07-drivers-module/api-spec.md
+          - History & Logs: 07-drivers-module/history-logs.md
+      - Vehicles Module: 08-vehicles-module.md
+      - Customers Module: 09-customers-module.md
+      - Orders Module: 10-orders-module.md
+      - Invoices Module: 11-invoices-module.md
 
-  - Technical Reference | Техническая справка:
-      - Financial System | Финансовая система: 12-financial-system.md
-      - Internationalization | Интернационализация: 13-i18n.md
-      - Database Schema | Схема БД: 14-database-schema.md
-      - API Specification | API спецификация: 15-api-specification.md
+  - Technical Reference:
+      - Financial System: 12-financial-system.md
+      - Internationalization: 13-i18n.md
+      - Database Schema: 14-database-schema.md
+      - API Specification: 15-api-specification.md
 
-  - Project Management | Управление проектом:
-      - Roadmap | Дорожная карта: 16-roadmap.md
+  - Project Management:
+      - Roadmap: 16-roadmap.md
 
 # Extra Configuration
 extra:

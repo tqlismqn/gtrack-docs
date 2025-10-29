@@ -1,23 +1,11 @@
-# API Specification | API спецификация
+# API Specification
 
----
+> **Status:** 🔄 Content will be filled from Master Specification v3.1
 
-## 🇬🇧 English
-
-> **Status:** 🔄 Content being filled from Master Specification v3.1
-
-[Content from Master Spec section 12: API Specification (lines 3637-3799)]
-
----
-
-## 🇷🇺 Русский
-
-> **Статус:** 🔄 Содержимое заполняется из Мастер-спецификации v3.1
-
-[Содержимое из Мастер-спецификации раздел 12: API Specification (строки 3637-3799)]
+[Content from Master Spec section 15: API Specification]
 
 ---
 
 **Last Updated:** October 29, 2025
-**Version:** 2.0.0
-**Source:** Master Specification v3.1, Section 12
+**Version:** 2.0.1
+**Source:** Master Specification v3.1, Section 15
