@@ -1,92 +1,162 @@
-site_name: G-Track Docs
+site_name: G-Track TMS Documentation | Документация G-Track TMS
+site_description: Complete technical and business documentation for G-Track Transport Management System
+site_author: G-Track Development Team
 site_url: https://docs.g-track.eu
-strict: true
 
+# Repository
+repo_name: tqlismqn/gtrack-docs
+repo_url: https://github.com/tqlismqn/gtrack-docs
+edit_uri: edit/main/docs/
+
+# Copyright
+copyright: Copyright &copy; 2025 G-Track TMS
+
+# Theme Configuration
 theme:
   name: material
+  language: en
+  palette:
+    # Light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: blue
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: blue
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
   features:
     - navigation.instant
     - navigation.tracking
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.indexes
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - search.share
+    - toc.follow
     - content.code.copy
+    - content.code.annotate
+  icon:
+    repo: fontawesome/brands/github
+    edit: material/pencil
+    view: material/eye
 
+# Plugins
 plugins:
-  - search
+  - search:
+      lang:
+        - en
+        - ru
 
+# Markdown Extensions
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - toc:
+      permalink: true
+      toc_depth: 3
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+# Navigation Structure
 nav:
-  # Main Documentation
-  - Home: index.md
-  - Overview: overview.md
-  - Master Specification: master-specification.md
-  
-  # Core Modules (V2)
-  - Modules:
-      - Overview: modules/drivers/index.md  # Temporary redirect until we have modules/index.md
-      - Drivers (In Development):
-          - Overview: modules/drivers/index.md
-          - Technical Spec: spec/drivers/DRIVERS_TECH_SPEC.md
-          - Data Model: spec/drivers/DATA_MODEL.md
-          - API Specification: spec/drivers/API.md
-          - RBAC: spec/drivers/RBAC.md
-          - Validation: spec/drivers/VALIDATION.md
-          - Audit & Notifications: spec/drivers/AUDIT_AND_NOTIFICATIONS.md
-          - UX Guidelines: spec/UX/DRIVER_CARD.md
-          - Glossary: spec/drivers/README.md
-      - Customers (Coming Soon):
-          - Overview: modules/customers/index.md
-          - Business Logic: modules/customers/business-logic.md
-      - Orders (Coming Soon):
-          - Overview: modules/orders/index.md
-          - Business Logic: modules/orders/business-logic.md
-      - Invoices (Coming Soon):
-          - Overview: modules/invoices/index.md
-          - Business Logic: modules/invoices/business-logic.md
-      - Vehicles & Trailers (Next Priority): modules/vehicles/index.md
+  - Home | Главная: index.md
 
-  - Design System:
-      - Overview: design-system/index.md
-      - Foundation: design-system/foundation.md
-      - Components: design-system/components.md
-      - Layout: design-system/layout.md
-      - Icons: design-system/icons.md
+  - System Foundation | Основы системы:
+      - Executive Summary | Краткое изложение: 01-executive-summary.md
+      - Project Overview | Обзор проекта: 02-project-overview.md
+      - Technology Stack | Технологический стек: 03-technology-stack.md
+      - System Architecture | Архитектура системы: 04-system-architecture.md
+      - Authentication | Аутентификация: 05-authentication.md
+      - Onboarding | Онбординг: 06-onboarding.md
 
-  # API Documentation
-  - API Reference:
-      - Overview: api/index.md
-      - v1 (Surface API): api/index.md
-      - v0 (Current):
-          - Overview: api/v0/index.md
-          - Drivers: api/v0/drivers.md
-          - Health Check: api/v0/health.md
-  
-  # Architecture & Technical Decisions
-  - Architecture:
-      - Overview: architecture/index.md
-      - System Documentation:
-          - System Overview: architecture/system-overview.md
-          - Business Processes: architecture/business-processes.md
-          - Data Flow: architecture/data-flow.md
-      - ADR:
-          - V2 Technology Stack (2025-10-24): architecture/adr/2025-10-24-v2-technology-stack.md
-          - V2 Stack (2025-10-19): architecture/adr/2025-10-19-v2-stack.md
-  
-  # Operations & Deployment
-  - Operations:
-      - Overview: ops/index.md
-  
-  # Imported Documentation (Auto-sync)
-  - Development Docs:
-      - Frontend: import/frontend/index.md
-      - Backend: import/backend/index.md
-  
-  # Release Management
-  - Releases:
-      - Changelog: CHANGELOG.md
-      - Update Packs: update-packs/index.md
-  
-  # Legacy & Archive
-  - Archive (OLD Version):
-      - About Archive: archive/index.md
-      - Legacy ADRs:
-          - Overview: archive/legacy-adr/index.md
-          # Note: Individual legacy ADR files can be accessed via direct links
-          # We don't list all of them here to keep navigation clean
+  - Core Modules | Основные модули:
+      - Drivers Module | Модуль водителей:
+          - Overview | Обзор: 07-drivers-module/index.md
+          - Business Logic | Бизнес-логика: 07-drivers-module/business-logic.md
+          - Document Types | Типы документов: 07-drivers-module/document-types.md
+          - UI/UX Design | UI/UX дизайн: 07-drivers-module/ui-ux.md
+          - API Specification | API спецификация: 07-drivers-module/api-spec.md
+          - History & Logs | История и логи: 07-drivers-module/history-logs.md
+      - Vehicles Module | Модуль транспорта: 08-vehicles-module.md
+      - Customers Module | Модуль клиентов: 09-customers-module.md
+      - Orders Module | Модуль заказов: 10-orders-module.md
+      - Invoices Module | Модуль счетов: 11-invoices-module.md
+
+  - Technical Reference | Техническая справка:
+      - Financial System | Финансовая система: 12-financial-system.md
+      - Internationalization | Интернационализация: 13-i18n.md
+      - Database Schema | Схема БД: 14-database-schema.md
+      - API Specification | API спецификация: 15-api-specification.md
+
+  - Project Management | Управление проектом:
+      - Roadmap | Дорожная карта: 16-roadmap.md
+
+# Extra Configuration
+extra:
+  version:
+    provider: mike
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/tqlismqn/gtrack-docs
+  analytics:
+    feedback:
+      title: Was this page helpful?
+      ratings:
+        - icon: material/emoticon-happy-outline
+          name: This page was helpful
+          data: 1
+          note: >-
+            Thanks for your feedback!
+        - icon: material/emoticon-sad-outline
+          name: This page could be improved
+          data: 0
+          note: >-
+            Thanks for your feedback! Please let us know how we can improve.
+
+# Extra CSS & JavaScript
+extra_css:
+  - stylesheets/extra.css
+
+extra_javascript:
+  - javascripts/extra.js
