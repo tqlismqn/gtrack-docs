@@ -516,6 +516,644 @@ GET /api/v0/documents/{document_id}/files/versions
 }
 ```
 
+## Driver Rating API (NEW 🆕)
+
+### Get Current Driver Rating
+
+**NEW FEATURE (October 29, 2025):** Retrieve driver's current performance rating with detailed component breakdown.
+
+**Endpoint:**
+```http
+GET /api/v0/drivers/{id}/rating
+```
+
+**Query Parameters:**
+- `period` (string) - Optional rating period (YYYY-MM, default: current month)
+
+**Response:**
+```json
+HTTP 200 OK
+{
+  "driver_id": "550e8400-e29b-41d4-a716-446655440000",
+  "total_score": 87.50,
+  "rating_period": "2025-10",
+  "rank_percentile": 85,
+  "previous_score": 84.20,
+  "score_change": 3.30,
+  "components": {
+    "document_expiration": {
+      "score": 95,
+      "weight": 30,
+      "contribution": 28.5,
+      "details": "12/14 documents valid, 1 expiring soon, 1 expired"
+    },
+    "penalties_count": {
+      "score": 80,
+      "weight": 20,
+      "contribution": 16.0,
+      "details": "2 penalties this period (threshold: 5)"
+    },
+    "penalties_amount": {
+      "score": 90,
+      "weight": 20,
+      "contribution": 18.0,
+      "details": "3,500 CZK in penalties (threshold: 10,000 CZK)"
+    },
+    "profile_completeness": {
+      "score": 100,
+      "weight": 10,
+      "contribution": 10.0,
+      "details": "All required fields filled (20/20)"
+    },
+    "document_upload_timeliness": {
+      "score": 85,
+      "weight": 10,
+      "contribution": 8.5,
+      "details": "Average 5 days upload time (threshold: 7 days)"
+    },
+    "activity": {
+      "score": 70,
+      "weight": 10,
+      "contribution": 7.0,
+      "details": "6 orders completed (threshold: 8 orders/month)"
+    }
+  },
+  "calculated_at": "2025-10-29T18:00:00Z"
+}
+```
+
+---
+
+### Get Driver Rating History
+
+**Endpoint:**
+```http
+GET /api/v0/drivers/{id}/rating/history
+```
+
+**Query Parameters:**
+- `from` (date) - Start date (YYYY-MM-DD, default: 6 months ago)
+- `to` (date) - End date (YYYY-MM-DD, default: today)
+- `per_page` (int) - Results per page (default: 12, max: 24)
+
+**Response:**
+```json
+HTTP 200 OK
+{
+  "data": [
+    {
+      "rating_period": "2025-10",
+      "total_score": 87.50,
+      "rank_percentile": 85,
+      "score_change": 3.30
+    },
+    {
+      "rating_period": "2025-09",
+      "total_score": 84.20,
+      "rank_percentile": 78,
+      "score_change": -2.10
+    }
+  ],
+  "summary": {
+    "highest_score": 89.50,
+    "highest_period": "2025-07",
+    "lowest_score": 72.80,
+    "lowest_period": "2025-03",
+    "average_score": 83.45,
+    "trend": "improving"
+  }
+}
+```
+
+---
+
+### Update Rating Configuration
+
+**Endpoint:**
+```http
+PUT /api/v0/companies/{company_id}/rating-config
+```
+
+**Permissions:** Admin, HR Manager
+
+**Request Body:**
+```json
+{
+  "metrics": [
+    {
+      "metric_name": "document_expiration",
+      "weight": 35,
+      "is_enabled": true,
+      "thresholds": {
+        "warning_days": 30
+      }
+    },
+    {
+      "metric_name": "penalties_count",
+      "weight": 15,
+      "is_enabled": true,
+      "thresholds": {
+        "max_count": 3
+      }
+    }
+  ]
+}
+```
+
+**Response:**
+```json
+HTTP 200 OK
+{
+  "message": "Rating configuration updated successfully",
+  "updated_metrics": 6,
+  "total_weight": 100
+}
+```
+
+**Validation:**
+- Sum of all weights must equal 100
+- All weights must be between 0 and 100
+- At least 3 metrics must be enabled
+
+---
+
+### Trigger Rating Recalculation
+
+**Endpoint:**
+```http
+POST /api/v0/drivers/{id}/rating/calculate
+```
+
+**Permissions:** Admin, HR Manager
+
+**Request Body:**
+```json
+{
+  "period": "2025-10"
+}
+```
+
+**Response:**
+```json
+HTTP 200 OK
+{
+  "message": "Rating calculated successfully",
+  "snapshot_id": "snapshot-uuid",
+  "total_score": 87.50,
+  "calculated_at": "2025-10-29T18:30:00Z"
+}
+```
+
+---
+
+## Finance Tracking API (NEW 🆕)
+
+### List Driver Financial Transactions
+
+**EXPANDED FEATURE (October 29, 2025):** Complete financial contour with full CRUD operations.
+
+**Endpoint:**
+```http
+GET /api/v0/drivers/{id}/finance
+```
+
+**Query Parameters:**
+- `page` (int) - Page number (default: 1)
+- `per_page` (int) - Results per page (default: 20, max: 100)
+- `type` (string) - Filter by transaction type
+- `status` (string) - Filter by status: `pending`, `approved`, `paid`, `cancelled`
+- `from_date` (date) - Start date (YYYY-MM-DD)
+- `to_date` (date) - End date (YYYY-MM-DD)
+- `period_id` (uuid) - Filter by specific period
+
+**Response:**
+```json
+HTTP 200 OK
+{
+  "current_page": 1,
+  "data": [
+    {
+      "id": "fin-uuid-1",
+      "driver_id": "550e8400-e29b-41d4-a716-446655440000",
+      "transaction_type": "base_salary",
+      "category": "salary",
+      "amount": 45000.00,
+      "currency": "CZK",
+      "status": "paid",
+      "transaction_date": "2025-10-01",
+      "payment_date": "2025-10-15",
+      "description": "October 2025 base salary",
+      "reference": "SAL-2025-10-001",
+      "approved_by": "Jan Admin",
+      "paid_by": "Petr Accountant",
+      "created_at": "2025-10-01T08:00:00Z"
+    },
+    {
+      "id": "fin-uuid-2",
+      "driver_id": "550e8400-e29b-41d4-a716-446655440000",
+      "transaction_type": "penalty",
+      "category": "damage_fine",
+      "amount": -3500.00,
+      "currency": "CZK",
+      "status": "disputed",
+      "transaction_date": "2025-10-12",
+      "description": "Trailer damage at loading dock",
+      "reference": "PEN-2025-10-042",
+      "created_at": "2025-10-12T14:30:00Z"
+    }
+  ],
+  "summary": {
+    "total_earnings": 75000.00,
+    "total_deductions": 8500.00,
+    "total_penalties": 3500.00,
+    "net_amount": 66500.00,
+    "currency": "CZK"
+  },
+  "total": 45,
+  "per_page": 20,
+  "last_page": 3
+}
+```
+
+---
+
+### Create Financial Transaction
+
+**Endpoint:**
+```http
+POST /api/v0/drivers/{id}/finance
+```
+
+**Permissions:** Admin, HR Manager, Accountant
+
+**Request Body:**
+```json
+{
+  "transaction_type": "bonus",
+  "category": "performance_bonus",
+  "amount": 5000.00,
+  "currency": "CZK",
+  "transaction_date": "2025-10-29",
+  "description": "Outstanding performance bonus for Q3 2025",
+  "reference": "BONUS-Q3-2025",
+  "metadata": {
+    "reason": "Perfect documents, zero penalties, 12 orders completed"
+  }
+}
+```
+
+**Response:**
+```json
+HTTP 201 Created
+{
+  "id": "fin-uuid-3",
+  "driver_id": "550e8400-e29b-41d4-a716-446655440000",
+  "transaction_type": "bonus",
+  "category": "performance_bonus",
+  "amount": 5000.00,
+  "currency": "CZK",
+  "status": "pending",
+  "transaction_date": "2025-10-29",
+  "description": "Outstanding performance bonus for Q3 2025",
+  "reference": "BONUS-Q3-2025",
+  "created_by": "Jan Admin",
+  "created_at": "2025-10-29T18:45:00Z"
+}
+```
+
+---
+
+### Update Financial Transaction
+
+**Endpoint:**
+```http
+PUT /api/v0/drivers/{id}/finance/{transaction_id}
+```
+
+**Permissions:** Admin, HR Manager, Accountant
+
+**Request Body:**
+```json
+{
+  "status": "approved",
+  "payment_date": "2025-11-01",
+  "description": "Approved - Outstanding Q3 performance"
+}
+```
+
+**Response:**
+```json
+HTTP 200 OK
+{
+  "id": "fin-uuid-3",
+  "status": "approved",
+  "payment_date": "2025-11-01",
+  "approved_by": "Petr Manager",
+  "approved_at": "2025-10-29T19:00:00Z",
+  "updated_at": "2025-10-29T19:00:00Z"
+}
+```
+
+---
+
+### Delete Financial Transaction
+
+**Endpoint:**
+```http
+DELETE /api/v0/drivers/{id}/finance/{transaction_id}
+```
+
+**Permissions:** Admin, HR Manager
+
+**Restrictions:**
+- Cannot delete transactions with status `paid`
+- Cannot delete transactions older than 90 days
+
+**Response:**
+```json
+HTTP 204 No Content
+```
+
+---
+
+### List Driver Penalties
+
+**Endpoint:**
+```http
+GET /api/v0/drivers/{id}/penalties
+```
+
+**Query Parameters:**
+- `page` (int) - Page number (default: 1)
+- `per_page` (int) - Results per page (default: 20, max: 100)
+- `type` (string) - Filter by penalty type
+- `status` (string) - Filter by status: `pending`, `accepted`, `disputed`, `resolved`, `cancelled`
+- `severity` (string) - Filter by severity: `minor`, `moderate`, `major`, `critical`
+
+**Response:**
+```json
+HTTP 200 OK
+{
+  "current_page": 1,
+  "data": [
+    {
+      "id": "pen-uuid-1",
+      "finance_id": "fin-uuid-2",
+      "driver_id": "550e8400-e29b-41d4-a716-446655440000",
+      "penalty_type": "damage",
+      "severity": "moderate",
+      "amount": 3500.00,
+      "currency": "CZK",
+      "incident_date": "2025-10-12",
+      "location": "Praha - Loading Dock ABC",
+      "description": "Trailer damage during backing maneuver",
+      "status": "disputed",
+      "dispute_reason": "Dock was poorly lit, no guidance provided by staff",
+      "dispute_submitted_at": "2025-10-13T08:30:00Z",
+      "created_at": "2025-10-12T14:30:00Z"
+    }
+  ],
+  "summary": {
+    "total_penalties": 8500.00,
+    "pending_count": 1,
+    "disputed_count": 1,
+    "resolved_count": 3
+  },
+  "total": 5,
+  "per_page": 20,
+  "last_page": 1
+}
+```
+
+---
+
+### Create Penalty
+
+**Endpoint:**
+```http
+POST /api/v0/drivers/{id}/penalties
+```
+
+**Permissions:** Admin, HR Manager
+
+**Request Body:**
+```json
+{
+  "penalty_type": "speeding",
+  "severity": "minor",
+  "amount": 2000.00,
+  "currency": "CZK",
+  "incident_date": "2025-10-28",
+  "location": "D1 highway, km 42",
+  "description": "Speeding violation: 95 km/h in 80 km/h zone",
+  "evidence": [
+    {"type": "photo", "url": "s3://bucket/evidence/speeding_001.jpg"},
+    {"type": "police_report", "url": "s3://bucket/evidence/report_001.pdf"}
+  ]
+}
+```
+
+**Response:**
+```json
+HTTP 201 Created
+{
+  "id": "pen-uuid-2",
+  "finance_id": "fin-uuid-4",
+  "driver_id": "550e8400-e29b-41d4-a716-446655440000",
+  "penalty_type": "speeding",
+  "severity": "minor",
+  "amount": 2000.00,
+  "currency": "CZK",
+  "status": "pending",
+  "incident_date": "2025-10-28",
+  "location": "D1 highway, km 42",
+  "created_by": "Jan Admin",
+  "created_at": "2025-10-29T19:15:00Z"
+}
+```
+
+---
+
+### File Penalty Dispute
+
+**Endpoint:**
+```http
+PUT /api/v0/drivers/{id}/penalties/{penalty_id}/dispute
+```
+
+**Permissions:** Driver (self), Admin, HR Manager
+
+**Request Body:**
+```json
+{
+  "dispute_reason": "The speed camera was malfunctioning according to reports. I was driving at 82 km/h, not 95 km/h.",
+  "evidence": [
+    {"type": "dashboard_camera", "url": "s3://bucket/evidence/dashcam_20251028.mp4"}
+  ]
+}
+```
+
+**Response:**
+```json
+HTTP 200 OK
+{
+  "id": "pen-uuid-2",
+  "status": "disputed",
+  "dispute_reason": "The speed camera was malfunctioning...",
+  "dispute_submitted_at": "2025-10-29T19:30:00Z",
+  "message": "Dispute filed successfully. HR Manager will review within 5 business days."
+}
+```
+
+---
+
+### Resolve Penalty Dispute
+
+**Endpoint:**
+```http
+PUT /api/v0/drivers/{id}/penalties/{penalty_id}/resolve
+```
+
+**Permissions:** Admin, HR Manager
+
+**Request Body:**
+```json
+{
+  "resolution_action": "reduce",
+  "new_amount": 1000.00,
+  "resolution": "After reviewing dashcam footage, speed was 87 km/h, not 95 km/h. Reduced penalty to 1,000 CZK."
+}
+```
+
+**Resolution Actions:**
+- `keep` - Keep original penalty amount
+- `reduce` - Reduce penalty amount (requires `new_amount`)
+- `cancel` - Cancel penalty entirely
+
+**Response:**
+```json
+HTTP 200 OK
+{
+  "id": "pen-uuid-2",
+  "status": "resolved",
+  "amount": 1000.00,
+  "resolution": "After reviewing dashcam footage...",
+  "resolved_by": "Petr Manager",
+  "resolved_at": "2025-10-30T10:00:00Z"
+}
+```
+
+---
+
+### Get Financial Periods
+
+**Endpoint:**
+```http
+GET /api/v0/drivers/{id}/finance/periods
+```
+
+**Query Parameters:**
+- `period_type` (string) - Filter by type: `weekly`, `monthly`, `quarterly`
+- `status` (string) - Filter by status: `open`, `closed`, `paid`
+- `year` (int) - Filter by year (e.g., 2025)
+
+**Response:**
+```json
+HTTP 200 OK
+{
+  "data": [
+    {
+      "id": "period-uuid-1",
+      "driver_id": "550e8400-e29b-41d4-a716-446655440000",
+      "period_type": "monthly",
+      "period_start": "2025-10-01",
+      "period_end": "2025-10-31",
+      "status": "open",
+      "total_earnings": 75000.00,
+      "total_deductions": 8500.00,
+      "net_amount": 66500.00,
+      "currency": "CZK",
+      "transactions_count": 15
+    },
+    {
+      "id": "period-uuid-2",
+      "driver_id": "550e8400-e29b-41d4-a716-446655440000",
+      "period_type": "monthly",
+      "period_start": "2025-09-01",
+      "period_end": "2025-09-30",
+      "status": "paid",
+      "total_earnings": 68000.00,
+      "total_deductions": 5200.00,
+      "net_amount": 62800.00,
+      "currency": "CZK",
+      "closed_at": "2025-10-01T08:00:00Z",
+      "paid_at": "2025-10-15T14:00:00Z"
+    }
+  ]
+}
+```
+
+---
+
+### Get Financial Aggregates
+
+**Endpoint:**
+```http
+GET /api/v0/drivers/{id}/finance/aggregates
+```
+
+**Query Parameters:**
+- `type` (string) - Aggregate type: `mtd`, `ytd`, `lifetime` (default: all)
+- `reference_date` (date) - Reference date for calculation (default: today)
+
+**Response:**
+```json
+HTTP 200 OK
+{
+  "mtd": {
+    "agg_type": "mtd",
+    "reference_date": "2025-10-29",
+    "total_earnings": 75000.00,
+    "total_deductions": 8500.00,
+    "total_penalties": 3500.00,
+    "penalties_count": 2,
+    "avg_monthly_earnings": 75000.00,
+    "currency": "CZK"
+  },
+  "ytd": {
+    "agg_type": "ytd",
+    "reference_date": "2025-10-29",
+    "total_earnings": 724500.00,
+    "total_deductions": 62300.00,
+    "total_penalties": 28500.00,
+    "penalties_count": 12,
+    "avg_monthly_earnings": 72450.00,
+    "currency": "CZK",
+    "metadata": {
+      "months_worked": 10,
+      "highest_month": {"month": "2025-07", "amount": 85200.00},
+      "lowest_month": {"month": "2025-03", "amount": 58100.00}
+    }
+  },
+  "lifetime": {
+    "agg_type": "lifetime",
+    "reference_date": "2025-10-29",
+    "total_earnings": 1824500.00,
+    "total_deductions": 142300.00,
+    "total_penalties": 78500.00,
+    "penalties_count": 28,
+    "avg_monthly_earnings": 68721.00,
+    "currency": "CZK",
+    "metadata": {
+      "employment_months": 28,
+      "first_transaction": "2023-05-15"
+    }
+  }
+}
+```
+
+---
+
 ## Future Integrations
 
 **Phase 2 (Q1-Q2 2026):**

@@ -251,8 +251,406 @@ function isDriverReady(driver: Driver): boolean {
 └──────────────────────────────────────────────┘
 ```
 
+## Driver Rating System (NEW FEATURE 🆕)
+
+**Status:** Planned for Week 1 (November 2025)
+**Source:** `docs/business-logic/WEEK_1_ACTION_PLAN.md` (October 29, 2025)
+
+### Overview
+
+The Driver Rating System provides an automated, transparent, and configurable way to evaluate driver performance based on multiple metrics.
+
+**Key Features:**
+- ✅ Configurable metrics with adjustable weights
+- ✅ Historical rating snapshots (trends over time)
+- ✅ Rating explainability (transparency for drivers + HR)
+- ✅ Telegram Bot integration
+- ✅ Audit trail for all rating changes
+
+### Metrics (Version 1)
+
+**Configurable Metrics:**
+
+| Metric | Type | Weight | Description |
+|--------|------|--------|-------------|
+| **Document Expiration** | Binary + Quantitative | 30% | 0 = all documents valid<br>1 = has expired documents<br>Quantitative: % of expired docs |
+| **Penalties Count** | Quantitative | 20% | Number of penalties per period |
+| **Penalties Amount** | Quantitative | 15% | Total penalty amount (CZK) |
+| **Profile Completeness** | Percentage | 10% | % of filled fields (KYC data) |
+| **Upload Timeliness** | Binary | 15% | Document uploaded before/after deadline |
+| **Activity** | Quantitative | 10% | Logins, confirmations, reactions |
+
+**Total:** 100% (weights configurable per company)
+
+### Database Tables
+
+**New Tables (4):**
+
+**1. driver_score_config**
+```sql
+CREATE TABLE driver_score_config (
+    id UUID PRIMARY KEY,
+    company_id UUID NOT NULL REFERENCES companies(id),
+    metric_name VARCHAR(50) NOT NULL,
+    weight DECIMAL(5,2) NOT NULL, -- 0.00 to 100.00
+    is_enabled BOOLEAN DEFAULT true,
+    created_at TIMESTAMPTZ,
+    updated_at TIMESTAMPTZ
+);
+
+-- Example data:
+INSERT INTO driver_score_config VALUES
+('uuid-1', 'company-1', 'document_expiration', 30.00, true),
+('uuid-2', 'company-1', 'penalties_count', 20.00, true),
+('uuid-3', 'company-1', 'penalties_amount', 15.00, true);
+```
+
+**2. driver_score_weights**
+```sql
+CREATE TABLE driver_score_weights (
+    id UUID PRIMARY KEY,
+    company_id UUID NOT NULL,
+    metric_name VARCHAR(50) NOT NULL,
+    weight_value DECIMAL(5,2) NOT NULL,
+    effective_from DATE NOT NULL,
+    effective_until DATE,
+    created_at TIMESTAMPTZ
+);
+
+-- Allows weight changes over time (historical tracking)
+```
+
+**3. driver_score_snapshots**
+```sql
+CREATE TABLE driver_score_snapshots (
+    id UUID PRIMARY KEY,
+    driver_id UUID NOT NULL REFERENCES drivers(id),
+    total_score DECIMAL(5,2) NOT NULL, -- 0.00 to 100.00
+    rating_period DATE NOT NULL, -- e.g., 2025-10-01 (monthly snapshot)
+    components JSONB NOT NULL, -- { "document_expiration": 25.5, ... }
+    created_at TIMESTAMPTZ
+);
+
+-- Example:
+{
+    "document_expiration": 30.0,
+    "penalties_count": 18.5,
+    "penalties_amount": 15.0,
+    "profile_completeness": 9.8,
+    "upload_timeliness": 12.0,
+    "activity": 8.2
+}
+-- Total: 93.5 / 100
+```
+
+**4. driver_score_components**
+```sql
+CREATE TABLE driver_score_components (
+    id UUID PRIMARY KEY,
+    snapshot_id UUID NOT NULL REFERENCES driver_score_snapshots(id),
+    metric_name VARCHAR(50) NOT NULL,
+    raw_value DECIMAL(10,2), -- e.g., 3 expired documents
+    normalized_score DECIMAL(5,2) NOT NULL, -- e.g., 20.5 / 30 points
+    weight DECIMAL(5,2) NOT NULL,
+    created_at TIMESTAMPTZ
+);
+
+-- Detailed breakdown for explainability
+```
+
+### Rating Calculation Logic
+
+**Step 1: Collect Raw Metrics**
+
+```typescript
+interface RawMetrics {
+    documentExpiration: {
+        totalDocuments: number;
+        expiredDocuments: number;
+        expiringDocuments: number;
+    };
+    penalties: {
+        count: number; // last 30 days
+        totalAmount: number; // CZK
+    };
+    profileCompleteness: {
+        totalFields: number;
+        filledFields: number;
+    };
+    uploadTimeliness: {
+        onTimeUploads: number;
+        lateUploads: number;
+    };
+    activity: {
+        logins: number; // last 30 days
+        confirmations: number;
+        reactions: number;
+    };
+}
+```
+
+**Step 2: Normalize Each Metric (0-100)**
+
+```typescript
+function normalizeDocumentExpiration(raw: RawMetrics): number {
+    if (raw.documentExpiration.totalDocuments === 0) return 0;
+
+    const expiredRatio = raw.documentExpiration.expiredDocuments /
+                         raw.documentExpiration.totalDocuments;
+
+    // 0 expired = 100 points, all expired = 0 points
+    return (1 - expiredRatio) * 100;
+}
+
+function normalizePenaltiesCount(raw: RawMetrics): number {
+    // 0 penalties = 100 points
+    // 1 penalty = 80 points
+    // 5+ penalties = 0 points
+    const penalties = raw.penalties.count;
+    if (penalties === 0) return 100;
+    if (penalties >= 5) return 0;
+
+    return 100 - (penalties * 20);
+}
+```
+
+**Step 3: Apply Weights**
+
+```typescript
+function calculateTotalScore(
+    normalizedScores: Record<string, number>,
+    weights: Record<string, number>
+): number {
+    let totalScore = 0;
+
+    for (const [metric, score] of Object.entries(normalizedScores)) {
+        const weight = weights[metric] || 0;
+        totalScore += (score / 100) * weight;
+    }
+
+    return Math.round(totalScore * 100) / 100; // e.g., 87.35
+}
+```
+
+**Step 4: Create Snapshot**
+
+```typescript
+// Save to database
+await DriverScoreSnapshot.create({
+    driver_id: driver.id,
+    total_score: 87.35,
+    rating_period: '2025-10-01',
+    components: {
+        document_expiration: 28.5, // 95% normalized × 30% weight
+        penalties_count: 16.0,     // 80% normalized × 20% weight
+        // ... other components
+    }
+});
+```
+
+### Telegram Bot Integration
+
+**Commands:**
+
+**1. Show Current Rating**
+```
+/rating
+
+Response:
+━━━━━━━━━━━━━━━━━━━━━━
+⭐ YOUR DRIVER RATING ⭐
+━━━━━━━━━━━━━━━━━━━━━━
+
+Overall Score: 87.5 / 100 🟢
+
+📊 Breakdown:
+✅ Documents: 95% (28.5 pts)
+⚠️ Penalties: 80% (16.0 pts)
+💰 Penalty Amount: 100% (15.0 pts)
+👤 Profile: 98% (9.8 pts)
+⏰ Timeliness: 80% (12.0 pts)
+📱 Activity: 82% (8.2 pts)
+
+Rank: Top 15% in your company
+
+[View Details] [History]
+━━━━━━━━━━━━━━━━━━━━━━
+```
+
+**2. Explain Score**
+```
+/rating_explain
+
+Response:
+━━━━━━━━━━━━━━━━━━━━━━
+📖 RATING EXPLANATION
+━━━━━━━━━━━━━━━━━━━━━━
+
+How your score is calculated:
+
+🟢 Documents (95% → 28.5/30 pts)
+   - All 14 documents valid ✅
+   - No expired documents ✅
+   - 0 missing documents ✅
+
+🟡 Penalties (80% → 16.0/20 pts)
+   - 1 penalty in last 30 days ⚠️
+   - Details: Speeding (20 km/h over)
+   - Tip: Drive carefully to avoid fines
+
+🟢 Penalty Amount (100% → 15.0/15 pts)
+   - Total: 500 CZK (low amount) ✅
+   - Threshold: <1000 CZK = full points
+
+🟢 Profile (98% → 9.8/10 pts)
+   - Missing: Emergency contact ⚠️
+   - Action: Update in your profile
+
+🟡 Timeliness (80% → 12.0/15 pts)
+   - 4 on-time uploads ✅
+   - 1 late upload ⚠️
+   - Tip: Upload documents before deadline
+
+🟡 Activity (82% → 8.2/10 pts)
+   - 12 logins in last 30 days ✅
+   - 5 confirmations ✅
+   - Tip: Respond to HR requests faster
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Need help improving?
+Contact HR: hr@company.cz
+
+━━━━━━━━━━━━━━━━━━━━━━
+```
+
+**3. Notifications**
+```
+🔔 RATING ALERT
+
+Your rating decreased from 92.5 to 87.5
+
+Reason:
+⚠️ Medical Examination expired
+⚠️ New penalty added (+500 CZK)
+
+Action Required:
+1. Upload new Medical Examination
+2. Check penalty details in Finance tab
+
+[View Rating] [Contact HR]
+```
+
+**4. Positive Badges**
+```
+🎉 ACHIEVEMENT UNLOCKED
+
+🏆 Perfect Documents Badge
+All 14 documents valid for 3 months!
+
+Keep it up! 💪
+
+[Share with HR] [View History]
+```
+
+### Explainability & Transparency
+
+**For Drivers:**
+- Clear breakdown of each metric
+- Visual indicators (🟢🟡🔴)
+- Actionable tips for improvement
+- Historical trends (rating over time)
+
+**For HR Managers:**
+- Compare drivers side-by-side
+- Identify training needs (e.g., many drivers with low timeliness)
+- Export rating reports (Excel/PDF)
+- Adjust weights based on company priorities
+
+**UI Example:**
+
+```
+┌──────────────────────────────────────────────┐
+│ Driver Rating - Jan Novák                    │
+├──────────────────────────────────────────────┤
+│                                              │
+│ Current Rating: 87.5 / 100 🟢                │
+│                                              │
+│ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ │
+│ ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░        │
+│ 87.5%                                        │
+│ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ │
+│                                              │
+│ Metric Breakdown:                            │
+│                                              │
+│ 🟢 Documents (95%)          [28.5 / 30 pts] │
+│    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━░░░░░       │
+│                                              │
+│ 🟡 Penalties Count (80%)    [16.0 / 20 pts] │
+│    ━━━━━━━━━━━━━━━━━━━━━░░░░░░░░░░░       │
+│                                              │
+│ 🟢 Penalty Amount (100%)    [15.0 / 15 pts] │
+│    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━   │
+│                                              │
+│ 🟢 Profile Complete (98%)   [9.8 / 10 pts]  │
+│    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━░░░   │
+│                                              │
+│ 🟡 Upload Timely (80%)      [12.0 / 15 pts] │
+│    ━━━━━━━━━━━━━━━━━━━━━░░░░░░░░░░░       │
+│                                              │
+│ 🟡 Activity (82%)           [8.2 / 10 pts]  │
+│    ━━━━━━━━━━━━━━━━━━━━━━░░░░░░░░░       │
+│                                              │
+│ [View History] [Compare with Others]         │
+└──────────────────────────────────────────────┘
+```
+
+### API Endpoints (Planned)
+
+```typescript
+// Get current rating
+GET /api/v0/drivers/{id}/rating
+
+Response:
+{
+    total_score: 87.5,
+    period: "2025-10",
+    components: {
+        document_expiration: { score: 28.5, weight: 30 },
+        penalties_count: { score: 16.0, weight: 20 },
+        // ...
+    },
+    rank_percentile: 85 // top 15%
+}
+
+// Get rating history (trends)
+GET /api/v0/drivers/{id}/rating/history?months=6
+
+Response:
+{
+    snapshots: [
+        { period: "2025-10", score: 87.5 },
+        { period: "2025-09", score: 92.1 },
+        { period: "2025-08", score: 88.3 },
+        // ...
+    ]
+}
+
+// Configure rating weights (HR Manager+)
+PUT /api/v0/companies/{id}/rating-config
+
+Body:
+{
+    weights: {
+        document_expiration: 30,
+        penalties_count: 20,
+        // ...
+    }
+}
+```
+
 ---
 
 **Last Updated:** October 29, 2025
 **Version:** 2.0.1
-**Source:** Master Specification v3.1, Section 7 (Module 1: Drivers)
+**Source:** Master Specification v3.1, Section 7 (Module 1: Drivers) + WEEK_1_ACTION_PLAN.md
