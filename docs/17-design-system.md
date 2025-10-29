@@ -830,9 +830,7 @@ The Drivers Module is the first priority module with comprehensive design specif
    - Color-coded badges with icons
    - Readiness dashboard
 
-**For detailed specifications, see:**
-- [Drivers Module Component Design](../../processed/design/DRIVERS_MODULE_COMPONENT_DESIGN.md)
-- [Mobile-First Strategy](../../processed/design/MOBILE_FIRST_STRATEGY.md)
+**Note:** Detailed component specifications and mobile-first implementation guidelines have been integrated throughout this Design System documentation (see Sections 2-10).
 
 ### Future Modules
 
@@ -920,35 +918,37 @@ Design patterns established in Drivers Module will be extended to:
 
 ## 13. Resources
 
-### Complete Documentation
+### Source Documentation
 
-For comprehensive details, refer to the following documents in the processed design folder:
+This Design System documentation was compiled from the following comprehensive source documents:
 
-1. **[BRAND_BOOK.md](../../processed/design/BRAND_BOOK.md)** (1300+ lines)
+1. **BRAND_BOOK.md** (1300+ lines)
    - Complete brand guidelines
    - Full component library
    - Material Design 3 integration
    - Dark mode preparation
 
-2. **[COLOR_PALETTE.md](../../processed/design/COLOR_PALETTE.md)** (356 lines)
+2. **COLOR_PALETTE.md** (356 lines)
    - All colors with hex codes and RGB values
    - Complete CSS variables
    - Usage examples and guidelines
 
-3. **[MOBILE_FIRST_STRATEGY.md](../../processed/design/MOBILE_FIRST_STRATEGY.md)** (750+ lines)
+3. **MOBILE_FIRST_STRATEGY.md** (750+ lines)
    - Mobile optimization techniques
    - Touch interaction patterns
    - Performance optimizations
    - Browser testing strategies
 
-4. **[DRIVERS_MODULE_COMPONENT_DESIGN.md](../../processed/design/DRIVERS_MODULE_COMPONENT_DESIGN.md)** (1300+ lines)
+4. **DRIVERS_MODULE_COMPONENT_DESIGN.md** (1300+ lines)
    - Complete Driver Form specification
    - Document Upload Dialog design
    - Wireframes and user flows
 
-5. **[QUICK_REFERENCE.md](../../processed/design/QUICK_REFERENCE.md)** (620 lines)
+5. **QUICK_REFERENCE.md** (620 lines)
    - TL;DR of all design docs
    - Quick facts and checklists
+
+**Note:** All content from these source documents has been integrated into this comprehensive Design System section.
 
 ### External Resources
 
