@@ -94,6 +94,470 @@ G-Track development is organized into **4 major phases** spanning 12 months (Q4 
 
 ---
 
+## Detailed 8-Week Plan (NEW 🆕)
+
+**UPDATED:** October 29, 2025 - Based on STRATEGIC_DEVELOPMENT_PLAN.md
+
+This is the detailed week-by-week execution plan for achieving Phase 1 MVP by mid-January 2026. Total timeline: **11 weeks (Oct 29, 2025 - Jan 20, 2026)**.
+
+### Week 0: Critical Fixes + Documentation Sync
+**Timeline:** Oct 29 - Nov 4, 2025
+**Status:** ✅ COMPLETED
+
+**Goal:** Fix critical backend issues, sync documentation, establish baseline
+
+**Deliverables:**
+- ✅ Fix backend 404 errors (deploy gtrack-backend to Laravel Cloud)
+- ✅ Sync Master Specification v3.1 with MkDocs site (100% complete)
+- ✅ Create CHANGELOG for 3 NEW features (Driver Rating, Finance 100%, Multi-Storage)
+- ✅ Establish 8-week development plan with priorities
+
+---
+
+### Week 1: Drivers Module to 100%
+**Timeline:** Nov 5 - Nov 11, 2025
+**Status:** ⏳ PLANNED
+
+**Goal:** Complete remaining 10% of Drivers Module
+
+**NEW FEATURES TO IMPLEMENT:**
+1. **Driver Rating System** (configurable with 6 metrics)
+2. **Finance Tracking 100%** (full financial contour with penalties)
+3. **Multi-Storage Provider** (AWS S3 + GCS + SharePoint)
+
+**Deliverables:**
+
+**Driver Form Component (2 days):**
+- Create/Edit Driver form with reactive validation
+- Address autocomplete (Google Places API)
+- Bank account validation (CZ format vs IBAN/SWIFT)
+- Contract date validation (indefinite vs fixed-term)
+
+**Document Upload UI (2 days):**
+- Drag-and-drop file upload component
+- Multi-file upload with progress bars
+- File validation (PDF/JPG/PNG, max 10MB)
+- Preview before upload
+- Upload to configurable storage (S3/GCS/SharePoint)
+
+**Document Management UI (2 days):**
+- Document card with status indicator (🟢🟡🟠🔴⚪)
+- Version history viewer
+- Download/Delete actions
+- Expiration date reminder UI
+
+**Comments Section (1 day):**
+- Real-time comments with WebSockets (Laravel Reverb)
+- Rich text editor (Quill.js or TinyMCE)
+- @mention support for users
+- File attachments in comments
+
+**Success Criteria:**
+- [ ] All 4 sub-features fully functional
+- [ ] Drivers Module at 100% feature completion
+- [ ] All UI components responsive on mobile (375px width)
+- [ ] Zero TypeScript errors, 80%+ test coverage
+
+---
+
+### Week 2: Finance Tracking 100% + Driver Rating System
+**Timeline:** Nov 12 - Nov 18, 2025
+**Status:** ⏳ PLANNED
+
+**Goal:** Implement NEW financial features discovered on Oct 29, 2025
+
+**Deliverables:**
+
+**Finance Tracking 100% (3 days):**
+- Implement 4 new database tables (driver_finance, driver_penalties, driver_finance_periods, driver_finance_agg)
+- Create Finance Tracking UI (transactions list, create/edit forms)
+- Penalty Management with dispute workflow
+- Financial periods (MTD, YTD aggregates)
+- API endpoints (12 new endpoints)
+
+**Driver Rating System (3 days):**
+- Implement 4 new database tables (driver_score_config, driver_score_snapshots, driver_score_components)
+- Rating calculation engine (6 configurable metrics)
+- Rating history UI with trend charts
+- Telegram Bot integration (rating commands: /rating, /rating_explain)
+- API endpoints (4 new endpoints)
+
+**Testing (1 day):**
+- Unit tests for rating calculation logic
+- Integration tests for finance workflows
+- Dispute workflow E2E test
+
+**Success Criteria:**
+- [ ] All 8 new database tables migrated
+- [ ] Rating system calculating correctly with configurable weights
+- [ ] Finance tracking with full dispute workflow
+- [ ] Telegram Bot integration working (basic commands)
+- [ ] 80%+ test coverage for new features
+
+---
+
+### Week 3: Testing Phase 1 (Unit + Integration Tests)
+**Timeline:** Nov 19 - Nov 25, 2025
+**Status:** ⏳ PLANNED
+
+**Goal:** Achieve 80%+ test coverage, fix all critical bugs
+
+**Deliverables:**
+
+**Backend Testing (3 days):**
+- Unit tests for all business logic (Pest)
+- Multi-tenancy isolation tests (CRITICAL)
+- API endpoint integration tests
+- Database transaction tests
+
+**Frontend Testing (3 days):**
+- Component unit tests (Jasmine)
+- Service unit tests with mocked HTTP
+- Form validation tests
+- Routing tests
+
+**Security Testing (1 day):**
+- Semgrep automated scan
+- Manual code review for security issues
+- OWASP Top 10 checklist
+
+**Success Criteria:**
+- [ ] Backend: 80%+ code coverage
+- [ ] Frontend: 70%+ code coverage
+- [ ] Zero multi-tenancy isolation failures
+- [ ] All P0 and P1 bugs fixed
+- [ ] Security checklist: 0 critical issues
+
+---
+
+### Week 4: Testing Phase 2 (E2E + Security Audit)
+**Timeline:** Nov 26 - Dec 2, 2025
+**Status:** ⏳ PLANNED
+
+**Goal:** End-to-end testing, comprehensive security audit
+
+**Deliverables:**
+
+**E2E Testing with Playwright (4 days):**
+- User authentication flow (login, logout, token refresh)
+- Driver CRUD operations (create, view, edit, delete)
+- Document upload and management flow
+- Finance tracking workflows (create transaction, file dispute, resolve)
+- Rating system UI testing (view rating, historical trends)
+
+**Security Audit (2 days):**
+- PostgreSQL RLS (Row-Level Security) implementation
+- API authentication/authorization review
+- Rate limiting validation (300 req/min per user)
+- Sensitive data encryption check (bank accounts, etc.)
+- GDPR compliance review (DPA, Privacy Policy, Terms)
+
+**Performance Testing (1 day):**
+- Load testing with 100 concurrent users
+- API response time validation (<500ms p95)
+- Database query optimization
+- Frontend FCP (First Contentful Paint) <1.5s
+
+**Success Criteria:**
+- [ ] All critical E2E flows passing
+- [ ] Zero security vulnerabilities (Critical/High)
+- [ ] Performance targets met (<500ms API, <1.5s FCP)
+- [ ] PostgreSQL RLS policies active on all tables
+- [ ] GDPR documentation complete (draft, marked for lawyer review)
+
+---
+
+### Week 5: Vehicles Module Setup + Vehicle Form
+**Timeline:** Dec 3 - Dec 9, 2025
+**Status:** ⏳ PLANNED
+
+**Goal:** Start Vehicles Module (Phase 2), implement vehicle profiles
+
+**Deliverables:**
+
+**Database Schema (1 day):**
+- Create vehicles table (LKV + PKV)
+- Create trailers table (5 types: Standard, Mega, Frigo, Van, Tautliner)
+- Create transport_units table (Driver + Vehicle + Trailer)
+- Migrations with seed data
+
+**Backend API (2 days):**
+- Vehicles CRUD endpoints
+- Trailers CRUD endpoints
+- Transport Units endpoints
+- Readiness calculation logic
+
+**Frontend Components (3 days):**
+- Vehicle List component with filters
+- Vehicle Form (Create/Edit)
+- Trailer Form (Create/Edit)
+- Transport Unit assignment UI
+
+**Testing (1 day):**
+- Unit tests for readiness logic
+- API integration tests
+- Component tests
+
+**Success Criteria:**
+- [ ] Vehicles Module: 50% complete
+- [ ] Vehicle/Trailer CRUD fully functional
+- [ ] Transport Unit assignment working
+- [ ] 80%+ test coverage
+
+---
+
+### Week 6: Vehicles Module Integration + Transport Units
+**Timeline:** Dec 10 - Dec 16, 2025
+**Status:** ⏳ PLANNED
+
+**Goal:** Complete Vehicles Module, integrate with Drivers
+
+**Deliverables:**
+
+**Vehicle Documents (2 days):**
+- Technical inspection tracking (STK)
+- Insurance document management
+- Service history records
+
+**Transport Unit Readiness (2 days):**
+- Readiness dashboard UI
+- Real-time readiness calculation
+- Alert system for unready units
+
+**Integration with Drivers (2 days):**
+- Driver → Vehicle assignment
+- Readiness validation (driver docs + vehicle docs)
+- Historical assignment tracking
+
+**Testing (1 day):**
+- E2E tests for vehicle workflows
+- Integration tests with Drivers Module
+- Readiness logic validation
+
+**Success Criteria:**
+- [ ] Vehicles Module: 100% complete
+- [ ] Transport Unit readiness working correctly
+- [ ] Integration with Drivers Module seamless
+- [ ] Readiness dashboard functional
+
+---
+
+### Week 7-8: Beta Testing + Final Polish
+**Timeline:** Dec 17 - Dec 30, 2025
+**Status:** ⏳ PLANNED
+
+**Goal:** Beta testing with 2-3 pilot companies, bug fixes, UX polish
+
+**Deliverables:**
+
+**Beta Testing Setup (2 days):**
+- Onboard 2-3 pilot companies (50-100 drivers each)
+- Migrate real data from Excel spreadsheets
+- User training sessions (HR managers)
+
+**Beta Testing Period (8 days):**
+- Daily feedback sessions with HR managers
+- Bug tracking and prioritization
+- UI/UX improvements based on feedback
+- Performance monitoring with real load
+
+**Critical Fixes (2 days):**
+- Fix all P0 bugs immediately
+- Fix all P1 bugs before launch
+- Performance optimization if needed
+
+**Documentation (2 days):**
+- User guides (onboarding, driver management, document upload)
+- Admin guides (user management, permissions, settings)
+- Video tutorials (3-5 minute screencasts)
+
+**Success Criteria:**
+- [ ] 3 pilot clients successfully onboarded
+- [ ] NPS score ≥8/10 from HR managers
+- [ ] Zero critical bugs (P0)
+- [ ] <10 minor bugs (P2)
+- [ ] User documentation complete
+
+---
+
+### Week 9: Production Deployment
+**Timeline:** Dec 31, 2025 - Jan 6, 2026
+**Status:** ⏳ PLANNED
+
+**Goal:** Final production deployment, monitoring setup
+
+**Deliverables:**
+
+**Deployment (2 days):**
+- Final production build and deployment
+- Database migration to production
+- SSL certificates and domain configuration
+- CDN setup for static assets (CloudFront)
+
+**Monitoring Setup (2 days):**
+- Sentry error tracking configured
+- CloudWatch dashboards (API latency, DB queries)
+- Uptime monitoring (Pingdom or StatusCake)
+- Alert configuration (Slack/email)
+
+**Smoke Testing (1 day):**
+- Verify all features in production
+- Load testing with realistic traffic
+- SSL/TLS validation
+- Backup and disaster recovery test
+
+**Go-Live (1 day):**
+- Official launch announcement
+- Invite beta clients to production
+- Press release (optional)
+
+**Success Criteria:**
+- [ ] Production deployment successful
+- [ ] Monitoring dashboards live
+- [ ] Zero downtime during migration
+- [ ] SSL/TLS configured correctly
+- [ ] Backup strategy verified
+
+---
+
+### Week 10-11: Client Onboarding + Post-Launch
+**Timeline:** Jan 7 - Jan 20, 2026
+**Status:** ⏳ PLANNED
+
+**Goal:** Onboard first 10 production clients, post-launch support
+
+**Deliverables:**
+
+**Client Onboarding (10 days):**
+- Onboard 10 production clients (2-10 per day)
+- Data migration from Excel/legacy systems
+- User training for each client
+- Customization (company logos, branding)
+
+**Post-Launch Support (4 days):**
+- 24/7 support for first week
+- Bug fixes and hotfixes as needed
+- Performance optimization based on real usage
+- Feedback collection and prioritization
+
+**Success Criteria:**
+- [ ] 10 production clients onboarded
+- [ ] Average onboarding time <2 hours per client
+- [ ] Client satisfaction ≥8/10
+- [ ] <5 support tickets per client in first week
+- [ ] System uptime ≥99.5%
+
+---
+
+### Quality Gates (Applied to Every Week)
+
+**🚦 Quality Gate Checklist:**
+
+Before moving to the next week, ALL of the following must be TRUE:
+
+1. **Code Quality:**
+   - [ ] TypeScript: 0 errors, 0 warnings
+   - [ ] ESLint: 0 errors, <5 warnings
+   - [ ] PHP: Laravel Pint passing, 0 errors
+   - [ ] Code review completed by peer
+
+2. **Testing:**
+   - [ ] Unit tests: 80%+ coverage (backend), 70%+ coverage (frontend)
+   - [ ] Integration tests: All API endpoints tested
+   - [ ] E2E tests: Critical user flows passing
+   - [ ] Manual testing: No obvious bugs
+
+3. **Security:**
+   - [ ] Multi-tenancy: All queries include company_id
+   - [ ] Authentication: JWT validation working
+   - [ ] Authorization: RBAC permissions enforced
+   - [ ] Semgrep scan: 0 critical/high issues
+
+4. **Performance:**
+   - [ ] API response time: <500ms (p95)
+   - [ ] Frontend FCP: <1.5s
+   - [ ] Database queries: <50ms (p95)
+   - [ ] No N+1 queries detected
+
+5. **Documentation:**
+   - [ ] README updated for new features
+   - [ ] API endpoints documented (OpenAPI)
+   - [ ] User guides updated (if user-facing features)
+   - [ ] CHANGELOG updated
+
+**⚠️ If any quality gate fails, STOP and fix before proceeding.**
+
+---
+
+### Key Milestones
+
+**🎯 Milestone 1: Drivers Module 100%** (Week 1 - Nov 11, 2025)
+- All 4 sub-features complete
+- 80%+ test coverage
+- Zero critical bugs
+
+**🎯 Milestone 2: NEW Features Complete** (Week 2 - Nov 18, 2025)
+- Driver Rating System live
+- Finance Tracking 100% live
+- Multi-Storage Provider configured
+
+**🎯 Milestone 3: Testing Complete** (Week 4 - Dec 2, 2025)
+- 80%+ code coverage
+- Security audit passed
+- Performance targets met
+
+**🎯 Milestone 4: Vehicles Module Complete** (Week 6 - Dec 16, 2025)
+- Vehicle/Trailer CRUD working
+- Transport Unit readiness functional
+- Integration with Drivers seamless
+
+**🎯 Milestone 5: Beta Testing Complete** (Week 8 - Dec 30, 2025)
+- 3 pilot clients onboarded
+- NPS ≥8/10
+- <10 minor bugs
+
+**🎯 Milestone 6: Production Launch** (Week 9 - Jan 6, 2026)
+- Production deployment successful
+- Monitoring live
+- Zero downtime
+
+**🎯 Milestone 7: First 10 Clients Live** (Week 11 - Jan 20, 2026)
+- 10 production clients
+- Client satisfaction ≥8/10
+- System uptime ≥99.5%
+
+---
+
+### Critical Questions for Client (URGENT - Priority P0)
+
+**These questions MUST be answered BEFORE Week 2:**
+
+1. **Driver Rating System:**
+   - Do you want the default 6 metrics, or custom metrics?
+   - Which metric weights are most important for your company?
+   - Should rating affect driver bonuses automatically?
+
+2. **Finance Tracking 100%:**
+   - Do you need salary calculation automation (base + bonuses)?
+   - Should penalties be deducted automatically from salary?
+   - Do you need integration with accounting software (POHODA, Money S3)?
+
+3. **Multi-Storage Provider:**
+   - Which storage provider do you prefer: AWS S3 (default), Google Cloud Storage, or Microsoft SharePoint?
+   - Do you need multi-region storage for compliance?
+   - What is your expected document storage volume (GB/month)?
+
+4. **Telegram Bot:**
+   - Do you want Telegram Bot for document uploads (mobile-first)?
+   - Which Telegram Bot features are most important (rating alerts, penalty disputes, document expiration)?
+
+5. **GDPR Compliance:**
+   - Do you need DPA (Data Processing Agreement) reviewed by lawyer?
+   - Do you need Privacy Policy and Terms of Service customized?
+   - Are there specific GDPR requirements for your industry?
+
+---
+
 ## Phase 2: Orders & Invoicing
 **Timeline:** Q1-Q2 2026 (February - June 2026)
 
