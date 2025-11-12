@@ -130,6 +130,12 @@ nav:
       - Database Schema: 14-database-schema.md
       - API Specification: 15-api-specification.md
       - Design System: 17-design-system.md
+      - Frontend Development:
+          - Overview: frontend/index.md
+          - Taiga UI Migration: frontend/taiga-ui-migration-guide.md
+          - Theme System: frontend/taiga-ui-theme-system.md
+          - Internationalization: frontend/taiga-ui-i18n.md
+          - Foundation: frontend/taiga-ui-foundation.md
 
   - Project Management:
       - Roadmap: 16-roadmap.md

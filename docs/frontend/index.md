@@ -296,7 +296,6 @@ test('should login and view drivers list', async ({ page }) => {
 - https://github.com/taiga-family/taiga-ui (GitHub repository)
 
 **G-Track Specific:**
-- [Component Inventory](../COMPONENT_INVENTORY_2025-11-08.md)
 - [Design System](../17-design-system.md)
 - [API Integration](../15-api-specification.md)
 
