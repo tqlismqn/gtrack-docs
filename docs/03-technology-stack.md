@@ -58,17 +58,27 @@ Laravel 12.35.0+
 **Deployment:**
 - **Platform:** Laravel Cloud
 - **URL:** https://api.g-track.eu
-- **Database:** Serverless PostgreSQL (Neon)
+- **Database:** Supabase PostgreSQL 17.6+ (serverless)
 - **File Storage:** AWS S3 (eu-central-1)
 - **CI/CD:** GitHub Actions → Laravel Cloud auto-deploy
 
-## Database
+## Database & Authentication
+
+**Technology:** Supabase (PostgreSQL 17.6+ + Auth)
 
 ```
-PostgreSQL 16.4+ / 17.0
-├── PostGIS 3.4+ (geospatial queries)
-├── TimescaleDB 2.13+ (GPS time-series)
-└── pg_cron (scheduled tasks)
+Supabase
+├── PostgreSQL 17.6+ (Database)
+│   ├── PostGIS 3.4+ (geospatial queries)
+│   ├── TimescaleDB 2.13+ (GPS time-series)
+│   └── pg_cron (scheduled tasks)
+├── Supabase Auth (Authentication)
+│   ├── Email/Password
+│   ├── Magic Link
+│   ├── OAuth (Google, Microsoft)
+│   └── JWT tokens with custom claims
+└── Row Level Security (RLS)
+    └── Multi-tenancy isolation (company_id)
 ```
 
 **Performance Optimizations:**
@@ -78,22 +88,32 @@ PostgreSQL 16.4+ / 17.0
 - Partitioning for GPS history (by month)
 - Materialized views for analytics
 
+**Authentication Migration (November 2025):**
+- ✅ **Migrated from Auth0 to Supabase Auth**
+- **Rationale:** Integrated database + auth, RLS for authorization, lower cost
+- **Documentation:** [Authentication Guide](05-authentication.md)
+
 ## Third-Party Services
 
 | Service | Purpose | Pricing |
 |---------|---------|---------|
-| **Auth0** | Authentication (OAuth, SSO) | $23/month (Essentials) |
+| **Supabase** | Database + Auth + Storage | $25/month (Pro) |
 | **Stripe** | Subscriptions, payments | 1.4% + €0.25 per transaction |
-| **AWS S3** | File storage | ~$5/month (500GB) |
+| **AWS S3** | File storage (documents) | ~$5/month (500GB) |
 | **Mailgun** | Transactional emails | $35/month (50k emails) |
 | **Sentry** | Error tracking | Free tier (5k errors/month) |
 | **Vercel** | Frontend hosting | Free tier (hobby) |
 | **Laravel Cloud** | Backend hosting | $19/month (starter) |
 
-**Total Monthly Cost (MVP):** ~$80-100/month
+**Total Monthly Cost (MVP):** ~$85/month
+
+**Cost Optimization Notes:**
+- Supabase Pro ($25) replaces Auth0 ($23) + managed PostgreSQL
+- Free tiers cover development and initial MVP testing
+- Scaling costs predictable with usage-based pricing
 
 ---
 
 **Last Updated:** November 12, 2025
-**Version:** 2.2.0
-**Source:** Master Specification v3.1, Section 3 + November 2025 Updates
+**Version:** 3.0.0 (Supabase Migration)
+**Source:** Master Specification v3.1, Section 3 + November 2025 Supabase Migration
