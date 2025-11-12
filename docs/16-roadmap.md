@@ -4,10 +4,15 @@
 
 G-Track development is organized into **4 major phases** spanning 12 months (Q4 2025 - Q4 2026). Each phase focuses on specific modules and features, with clear deliverables and success criteria.
 
-**Current Status (October 29, 2025):**
-- **Phase 1:** In Progress (90% Drivers Module complete)
+**Current Status (November 12, 2025):**
+- **Phase 1:** In Progress (95% Drivers Module complete)
 - **Target MVP Launch:** January 2026
 - **Beta Testing:** December 2025 with 3 pilot clients
+- **Recent Milestones:**
+  - ✅ Taiga UI Migration (November 9-11, 2025)
+  - ✅ Login Page Redesign (November 10-11, 2025)
+  - ✅ Registration Flow Complete (November 7-11, 2025)
+  - ✅ Supabase Auth Migration (November 12, 2025)
 
 ## Phase 1: MVP - Drivers Module + Core Infrastructure
 **Timeline:** Q4 2025 - Q1 2026 (October 2025 - January 2026)
@@ -28,18 +33,22 @@ G-Track development is organized into **4 major phases** spanning 12 months (Q4 
 - ⏳ Readiness Dashboard (who can work today?) - Planned
 - ⏳ Finance Tracking (salary, fines, bonuses) - Planned
 
-**1.2 Layout & Navigation - November 5, 2025**
-- ✅ Layout v2.0 with Material Design 3 (DONE - deployed October 27)
+**1.2 Layout & Navigation - ✅ COMPLETED (November 11, 2025)**
+- ✅ Layout v2.0 with Taiga UI 4.60.0 (DONE - deployed November 10)
+- ✅ Login Page Redesign (8 UX improvements, PR #95, #100, #101)
+- ✅ Registration Flow Complete (4 phases, production-ready)
+- ✅ Transloco i18n (10 languages: EN, DE, PL, UK, RU, FR, ES, IT, SK, CS)
 - ✅ Responsive sidebar with collapse/expand (DONE)
 - ✅ Dark mode toggle (DONE)
 - ✅ User menu with profile/settings/logout (DONE)
 - ✅ Breadcrumbs and page headers (DONE)
 
-**1.3 Authentication & Authorization - October 15, 2025**
-- ✅ Auth0 integration (OAuth 2.0 + OpenID Connect) (DONE)
+**1.3 Authentication & Authorization - ✅ COMPLETED (November 12, 2025)**
+- ✅ Supabase Auth integration (JWT + RLS) - **MIGRATED from Auth0**
 - ✅ JWT token validation on backend (DONE)
 - ✅ RBAC with 5 roles: Admin, Accountant, HR Manager, Dispatcher, Driver (DONE)
 - ✅ Permission-based UI guards (DONE)
+- ✅ Row Level Security (RLS) policies for multi-tenancy (DONE)
 
 **1.4 Backend API - November 15, 2025**
 - ✅ Laravel 12 RESTful API (DONE)
@@ -67,13 +76,17 @@ G-Track development is organized into **4 major phases** spanning 12 months (Q4 
 - ⏳ Bug fixes and UX improvements based on feedback
 - ⏳ Load testing with real data
 
-**1.8 Documentation - January 5, 2026**
+**1.8 Documentation - ✅ COMPLETED (November 12, 2025)**
 - ✅ Master Specification v3.1 (DONE)
 - ✅ MkDocs documentation site structure (DONE)
-- 🔄 English-only content migration (75% complete - sections 01-13 done)
-- ⏳ User guides (onboarding, driver management, document upload)
-- ⏳ API documentation (OpenAPI/Swagger spec)
-- ⏳ Admin guides (user management, permissions, settings)
+- ✅ English-only content migration (100% complete - all sections done)
+- ✅ Supabase Auth migration documentation (962 lines, comprehensive)
+- ✅ Technology Stack documentation updated (Taiga UI + Supabase)
+- ✅ PROJECT_STATUS.md as central entry point (DONE)
+- ✅ Frontend documentation (Taiga UI guides, 4 files)
+- ⏳ User guides (onboarding, driver management, document upload) - Planned
+- ⏳ API documentation (OpenAPI/Swagger spec) - Planned
+- ⏳ Admin guides (user management, permissions, settings) - Planned
 
 **1.9 Deployment & Monitoring - January 15, 2026**
 - ✅ Frontend on Vercel (DONE)
@@ -114,85 +127,112 @@ This is the detailed week-by-week execution plan for achieving Phase 1 MVP by mi
 
 ---
 
-### Week 1: Drivers Module to 100%
+### Week 1: UI Library Migration + Login/Registration
 **Timeline:** Nov 5 - Nov 11, 2025
-**Status:** ⏳ PLANNED
+**Status:** ✅ COMPLETED
 
-**Goal:** Complete remaining 10% of Drivers Module
+**Goal:** Migrate from Material Design 3 to Taiga UI 4.60.0, redesign Login/Registration pages
 
-**NEW FEATURES TO IMPLEMENT:**
-1. **Driver Rating System** (configurable with 6 metrics)
-2. **Finance Tracking 100%** (full financial contour with penalties)
-3. **Multi-Storage Provider** (AWS S3 + GCS + SharePoint)
+**COMPLETED DELIVERABLES:**
 
-**Deliverables:**
+**Taiga UI Migration (3 days):**
+- ✅ Installed Taiga UI 4.60.0 (@taiga-ui/*)
+- ✅ Migrated Layout v2.0 components
+- ✅ Dark mode implementation with theme toggle
+- ✅ Responsive sidebar with collapse/expand
+- ✅ 120+ components available for future modules
 
-**Driver Form Component (2 days):**
-- Create/Edit Driver form with reactive validation
-- Address autocomplete (Google Places API)
-- Bank account validation (CZ format vs IBAN/SWIFT)
-- Contract date validation (indefinite vs fixed-term)
+**Login Page Redesign (2 days):**
+- ✅ 8 UX improvements (PR #95, #100, #101)
+- ✅ 2-column auth buttons (Google + Microsoft)
+- ✅ Language selector with 10 flags (EN, DE, PL, UK, RU, FR, ES, IT, SK, CS)
+- ✅ Hero section with 3 features + 3 stats
+- ✅ Deployed to production: https://app.g-track.eu/login
 
-**Document Upload UI (2 days):**
-- Drag-and-drop file upload component
-- Multi-file upload with progress bars
-- File validation (PDF/JPG/PNG, max 10MB)
-- Preview before upload
-- Upload to configurable storage (S3/GCS/SharePoint)
+**Registration Flow (2 days):**
+- ✅ 4-phase implementation (Backend, HTML, SCSS, i18n)
+- ✅ 8 form fields (Company Name, Full Name, Email, Password, etc.)
+- ✅ Country selector with 27 EU countries
+- ✅ VAT Number field with auto-prefix
+- ✅ Production-ready (issue G-103)
 
-**Document Management UI (2 days):**
-- Document card with status indicator (🟢🟡🟠🔴⚪)
-- Version history viewer
-- Download/Delete actions
-- Expiration date reminder UI
+**Transloco i18n Integration (1 day):**
+- ✅ Installed @jsverse/transloco v8.1.0
+- ✅ 10 language support (EN, DE, PL, UK, RU, FR, ES, IT, SK, CS)
+- ✅ 121-line translation files created for each language
+- ✅ Login page fully migrated to Transloco pipes
+- ✅ Language sync service (Taiga UI ↔ Transloco)
+- ✅ Issue G-108 completed
 
-**Comments Section (1 day):**
-- Real-time comments with WebSockets (Laravel Reverb)
-- Rich text editor (Quill.js or TinyMCE)
-- @mention support for users
-- File attachments in comments
+**Documentation (1 day):**
+- ✅ Created frontend/index.md (306 lines)
+- ✅ Created 4 Taiga UI guides (migration, theme, i18n, foundation)
+- ✅ Updated CHANGELOG.md with all changes
+- ✅ Issue G-114 completed
 
 **Success Criteria:**
-- [ ] All 4 sub-features fully functional
-- [ ] Drivers Module at 100% feature completion
-- [ ] All UI components responsive on mobile (375px width)
-- [ ] Zero TypeScript errors, 80%+ test coverage
+- ✅ Taiga UI 4.60.0 fully integrated
+- ✅ Login + Registration pages production-ready
+- ✅ 10 languages supported
+- ✅ Documentation complete (5 new files)
+- ✅ Zero critical bugs
+- ✅ Deployed to production
 
 ---
 
-### Week 2: Finance Tracking 100% + Driver Rating System
+### Week 2: Documentation Sync + Supabase Auth Migration
 **Timeline:** Nov 12 - Nov 18, 2025
-**Status:** ⏳ PLANNED
+**Status:** 🔄 IN PROGRESS (Day 2 of 7)
 
-**Goal:** Implement NEW financial features discovered on Oct 29, 2025
+**Goal:** Complete documentation cleanup, migrate from Auth0 to Supabase Auth
 
-**Deliverables:**
+**COMPLETED DELIVERABLES:**
 
-**Finance Tracking 100% (3 days):**
-- Implement 4 new database tables (driver_finance, driver_penalties, driver_finance_periods, driver_finance_agg)
-- Create Finance Tracking UI (transactions list, create/edit forms)
-- Penalty Management with dispute workflow
-- Financial periods (MTD, YTD aggregates)
-- API endpoints (12 new endpoints)
+**Documentation Cleanup (1 day - November 12):**
+- ✅ Created PROJECT_STATUS.md as central entry point (315 lines)
+- ✅ Updated CHANGELOG.md with [2.2.0] November changes
+- ✅ Cleaned root folder: 60+ files → 2 files
+- ✅ Organized archive structure (sessions, implementation, design, tests, screenshots)
+- ✅ Modified end-session.sh for auto-update
+- ✅ Verified GitHub Actions deployment
+- ✅ Issue G-114 completed
 
-**Driver Rating System (3 days):**
-- Implement 4 new database tables (driver_score_config, driver_score_snapshots, driver_score_components)
-- Rating calculation engine (6 configurable metrics)
-- Rating history UI with trend charts
-- Telegram Bot integration (rating commands: /rating, /rating_explain)
-- API endpoints (4 new endpoints)
+**Supabase Auth Migration (1 day - November 12):**
+- ✅ Rewrote Authentication section (05-authentication.md) - 962 lines
+- ✅ Removed ALL Auth0 references
+- ✅ Added Supabase Auth (JWT + RLS) documentation
+- ✅ Updated Technology Stack (03-technology-stack.md)
+- ✅ Updated Home page (index.md)
+- ✅ Updated cost calculations: $80-100 → $85/month
+- ✅ Deployed to production: https://docs.g-track.eu
 
-**Testing (1 day):**
-- Unit tests for rating calculation logic
-- Integration tests for finance workflows
-- Dispute workflow E2E test
+**IN PROGRESS:**
+
+**Roadmap Sync with Linear (0.5 days):**
+- 🔄 Update Week 1 status: PLANNED → COMPLETED
+- 🔄 Update Week 2 status: PLANNED → IN PROGRESS
+- 🔄 Add completed Linear issues (G-90 to G-114)
+- 🔄 Update Drivers Module: 90% → 95%
+
+**PLANNED:**
+
+**MkDocs i18n Setup (1 day):**
+- ⏳ Install mkdocs-static-i18n plugin
+- ⏳ Configure RU/EN languages
+- ⏳ Create folder structure (docs/ + docs.ru/)
+- ⏳ Test bilingual navigation
+
+**Russian Translations (2 days):**
+- ⏳ Translate key pages: index.md, PROJECT_STATUS.md, 03-technology-stack.md, 05-authentication.md
+- ⏳ Test language switcher
+- ⏳ Deploy bilingual site
 
 **Success Criteria:**
-- [ ] All 8 new database tables migrated
-- [ ] Rating system calculating correctly with configurable weights
-- [ ] Finance tracking with full dispute workflow
-- [ ] Telegram Bot integration working (basic commands)
-- [ ] 80%+ test coverage for new features
+- ✅ Documentation cleanup complete
+- ✅ Supabase Auth migration documented
+- 🔄 Roadmap synced with Linear (IN PROGRESS)
+- ⏳ MkDocs i18n configured
+- ⏳ Russian translations available
 
 ---
 
@@ -792,6 +832,6 @@ Before moving to the next week, ALL of the following must be TRUE:
 
 ---
 
-**Last Updated:** October 29, 2025
-**Version:** 2.0.1
-**Source:** Master Specification v3.1, Section 16 (Development Roadmap)
+**Last Updated:** November 12, 2025
+**Version:** 2.1.0 (Week 1-2 Updates + Supabase Migration)
+**Source:** Master Specification v3.1, Section 16 (Development Roadmap) + Linear Issues G-90 to G-114
