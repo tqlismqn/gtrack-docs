@@ -22,7 +22,7 @@ The platform addresses critical pain points in:
 **Timeline:** Q4 2025 - Q1 2026
 **Target Launch:** January 2026
 
-**Priority #1:** Drivers Module (90% → 100% complete)
+**Priority #1:** Drivers Module (95% complete)
 
 ---
 
@@ -32,14 +32,14 @@ The platform addresses critical pain points in:
 
     - [Executive Summary](01-executive-summary.md) - Project overview and key features
     - [Project Overview](02-project-overview.md) - Business context and problem statement
-    - [Technology Stack](03-technology-stack.md) - Angular 20, Laravel 12, PostgreSQL 16+
+    - [Technology Stack](03-technology-stack.md) - Angular 20, Laravel 12, Supabase
     - [System Architecture](04-system-architecture.md) - Multi-tenancy, authentication, authorization
-    - [Authentication](05-authentication.md) - Auth0 integration and RBAC
+    - [Authentication](05-authentication.md) - Supabase Auth integration and RLS-based RBAC
     - [Onboarding](06-onboarding.md) - Company setup and first-time user experience
 
 === "Core Modules"
 
-    - [Drivers Module](07-drivers-module/index.md) - **Priority #1** (90% complete)
+    - [Drivers Module](07-drivers-module/index.md) - **Priority #1** (95% complete)
         - Document management for 14 types
         - Readiness tracking and alerts
         - Mobile document upload via Telegram Bot
@@ -67,16 +67,19 @@ The platform addresses critical pain points in:
 graph TB
     A[Frontend: Angular 20] --> D[API Gateway]
     B[Backend: Laravel 12] --> D
-    C[Database: PostgreSQL 16] --> B
-    D --> E[Auth0]
+    C[Supabase: PostgreSQL 17.6] --> B
+    C --> E[Supabase Auth]
+    D --> E
     D --> F[AWS S3]
     B --> G[Redis Cache]
+    E --> C
 ```
 
 **Frontend:** Angular 20 + TypeScript 5.6 + Taiga UI 4.60.0
 **Backend:** Laravel 12 + PHP 8.3 + RESTful API
-**Database:** PostgreSQL 17.6 + PostGIS + TimescaleDB
-**Hosting:** Vercel (frontend) + Laravel Cloud (backend)
+**Database:** Supabase PostgreSQL 17.6 + PostGIS + TimescaleDB
+**Authentication:** Supabase Auth (JWT + RLS)
+**Hosting:** Vercel (frontend) + Laravel Cloud (backend) + Supabase (database)
 
 ---
 
