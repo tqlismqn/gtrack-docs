@@ -4,13 +4,23 @@
 
 ```
 Angular 20.0.0+
-├── @angular/material 20.0.0+ (Material Design 3)
+├── @taiga-ui/* 4.60.0 (Taiga UI - Modern Angular UI Kit)
+│   ├── @taiga-ui/core (Base components, themes)
+│   ├── @taiga-ui/kit (Advanced components)
+│   ├── @taiga-ui/cdk (Utilities, directives)
+│   ├── @taiga-ui/icons (Icon library)
+│   └── @taiga-ui/layout (Layout components)
 ├── TypeScript 5.6+
 ├── RxJS 7.8+
 ├── Signals (native Angular state management)
-├── @ngx-translate/core (i18n)
+├── @jsverse/transloco (i18n - modern alternative to ngx-translate)
 └── Leaflet (GPS maps)
 ```
+
+**UI Library Migration (November 2025):**
+- ✅ **Migrated from Material Design 3 to Taiga UI 4.60.0**
+- **Rationale:** Superior visual design, 120+ components, built-in dark mode/i18n
+- **Documentation:** [Taiga UI Migration Guide](frontend/taiga-ui-migration-guide.md)
 
 **Key Architecture Decisions:**
 - **Standalone Components** - no NgModules
@@ -84,6 +94,6 @@ PostgreSQL 16.4+ / 17.0
 
 ---
 
-**Last Updated:** October 29, 2025
-**Version:** 2.0.1
-**Source:** Master Specification v3.1, Section 3
+**Last Updated:** November 12, 2025
+**Version:** 2.2.0
+**Source:** Master Specification v3.1, Section 3 + November 2025 Updates

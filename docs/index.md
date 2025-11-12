@@ -73,9 +73,9 @@ graph TB
     B --> G[Redis Cache]
 ```
 
-**Frontend:** Angular 20 + TypeScript 5.6 + Material Design 3
+**Frontend:** Angular 20 + TypeScript 5.6 + Taiga UI 4.60.0
 **Backend:** Laravel 12 + PHP 8.3 + RESTful API
-**Database:** PostgreSQL 16 + PostGIS + TimescaleDB
+**Database:** PostgreSQL 17.6 + PostGIS + TimescaleDB
 **Hosting:** Vercel (frontend) + Laravel Cloud (backend)
 
 ---
@@ -94,11 +94,23 @@ graph TB
 
 ## 📖 Documentation Version
 
-**Version:** 2.0.1 (English-only)
-**Last Updated:** October 29, 2025
-**Based on:** Master Specification v3.1 (October 27, 2025)
+**Version:** 2.2.0 (English-only)
+**Last Updated:** November 12, 2025
+**Based on:** Master Specification v3.1 + November 2025 Updates
 
 **Source Repository:** [github.com/tqlismqn/gtrack-docs](https://github.com/tqlismqn/gtrack-docs) *(Private)*
+
+---
+
+## 🎯 Quick Status Check
+
+**Want to see current project status?** Check [**PROJECT_STATUS.md**](PROJECT_STATUS.md) for:
+- ✅ Current sprint progress (Week 2: November 11-17, 2025)
+- 🔄 What's in progress right now
+- 📋 Recent changes (last 2 weeks)
+- 🎯 Next milestones
+
+**For complete project history:** See [**CHANGELOG.md**](CHANGELOG.md)
 
 ---
 

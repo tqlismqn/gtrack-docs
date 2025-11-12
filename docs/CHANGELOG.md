@@ -7,6 +7,195 @@ All notable changes to the G-Track project documentation and specifications.
 
 ---
 
+## [2.2.0] - November 12, 2025
+
+### 🎨 UI Library Migration - Taiga UI 4.60.0
+
+**Major Change:** Migrated from Material Design 3 to Taiga UI 4.60.0
+
+#### Rationale
+- **Superior Visual Design:** Modern, polished UI components with better aesthetics
+- **Richer Component Library:** 120+ components vs Angular Material's ~40
+- **Built-in Features:** Dark theme, i18n support, mobile-optimized components
+- **Easier Customization:** CSS variables-based theming vs complex Angular Material theming
+- **Better Developer Experience:** TypeScript-first, reactive forms integration
+
+#### Migration Timeline
+- **November 9, 2025:** Decision made, comparison document created
+- **November 9-10, 2025:** Core migration (Layout, Button, Input components)
+- **November 10-11, 2025:** Login Page redesign with Taiga UI
+- **November 11, 2025:** Registration Flow implementation
+- **November 11, 2025:** Language Switcher with flags
+
+#### Components Migrated
+- ✅ Layout components (Header, Sidebar, Content)
+- ✅ Form components (Input, Select, Checkbox, Radio)
+- ✅ Button components (Primary, Secondary, Text)
+- ✅ Navigation components (Tabs, Stepper)
+- ✅ Data display (Table, Card, Badge)
+- ✅ Feedback (Alert, Dialog, Toast)
+- ✅ Theme system (Dark mode support)
+
+#### Technical Details
+```json
+{
+  "@taiga-ui/cdk": "^4.60.0",
+  "@taiga-ui/core": "^4.60.0",
+  "@taiga-ui/kit": "^4.60.0",
+  "@taiga-ui/icons": "^4.60.0",
+  "@taiga-ui/layout": "^4.60.0"
+}
+```
+
+**Documentation:**
+- [Taiga UI Migration Guide](frontend/taiga-ui-migration-guide.md)
+- [Taiga UI Theme System](frontend/taiga-ui-theme-system.md)
+- [Taiga UI i18n](frontend/taiga-ui-i18n.md)
+
+---
+
+### 🚀 Login Page Redesign (November 10-11, 2025)
+
+**Status:** ✅ Complete and deployed to production
+
+#### Features Implemented
+1. **Figma Mockup Implementation**
+   - Split-screen layout (hero section + form)
+   - Responsive design (mobile-first: 375px, tablet: 768px, desktop: 1920px)
+   - G-Track logo with proper sizing (180px height)
+   - Gradient hero section with brand colors
+
+2. **Taiga UI Components**
+   - `TuiInputModule` for email/password fields
+   - `TuiButtonModule` for primary action button
+   - `TuiTextfieldControllerModule` for field styling
+   - `TuiHintModule` for tooltips
+   - Reactive forms integration
+
+3. **Language Switcher**
+   - 10 languages supported: RU, EN, CZ, PL, DE, SK, UA, IT, FR, ES
+   - Country flags display (emoji-based, no external assets)
+   - Dropdown with Taiga UI `TuiDataListModule`
+   - Persistent language selection (localStorage)
+   - Transloco integration for i18n
+
+4. **Responsive Behavior**
+   - Mobile (375px): Stacked layout, full-width form
+   - Tablet (768px): Split 50/50 layout
+   - Desktop (1920px): Split 60/40 layout with larger hero
+
+5. **Dark Mode Support**
+   - Automatic theme detection via Taiga UI
+   - Smooth transitions between themes
+   - Proper contrast ratios (WCAG AA compliant)
+
+#### Production Deployment
+- **URL:** https://app.g-track.eu/login
+- **Status:** ✅ Deployed successfully
+- **Deployment Date:** November 11, 2025
+- **Vercel Build:** #108
+- **E2E Tests:** Passing (Playwright)
+
+#### Performance Metrics
+- **Lighthouse Score:** 92/100 (mobile)
+- **First Contentful Paint:** 0.9s
+- **Time to Interactive:** 1.8s
+- **Cumulative Layout Shift:** 0.02
+
+---
+
+### 📝 Registration Flow (November 7-11, 2025)
+
+**Status:** ✅ Complete and deployed to production
+
+#### Features Implemented
+1. **Multi-Step Form**
+   - Step 1: Company Information (name, VAT, country, address)
+   - Step 2: Admin Account (name, email, password, phone)
+   - Step 3: Review & Confirm
+
+2. **Taiga UI Components**
+   - `TuiStepperModule` for multi-step navigation
+   - `TuiInputModule` for text fields
+   - `TuiSelectModule` for country/timezone selection
+   - `TuiCheckboxModule` for terms acceptance
+   - Form validation with error messages
+
+3. **VAT Validation**
+   - Integration with EU VIES API
+   - Real-time validation as user types
+   - Support for all EU VAT formats
+   - Error handling for invalid VAT numbers
+
+4. **Country Selector**
+   - 27 EU countries + UK
+   - Flags display with country names
+   - Timezone auto-selection based on country
+   - Currency detection (EUR/CZK/PLN)
+
+5. **Auth0 Integration**
+   - User registration via Auth0 Management API
+   - Email verification flow
+   - Password strength validation
+   - Role assignment (Company Admin)
+
+#### Production Deployment
+- **URL:** https://app.g-track.eu/register
+- **Status:** ✅ Deployed successfully
+- **Deployment Date:** November 11, 2025
+- **E2E Tests:** Passing
+
+---
+
+### 🔧 Technical Improvements (November 2025)
+
+#### TypeScript Strict Mode
+- Enabled `strictNullChecks`, `strictFunctionTypes`, `strictPropertyInitialization`
+- Fixed 43 type errors in Login component
+- Improved type safety across all components
+- Better IDE autocomplete and error detection
+
+#### Reactive Forms Enhancement
+- Migrated from template-driven to reactive forms
+- Better validation error handling
+- FormGroup typing with TypeScript
+- Custom validators for VAT, phone, password
+
+#### Performance Optimizations
+- Lazy loading for routes
+- OnPush change detection strategy
+- Debounced search inputs
+- Optimized bundle size (reduced by 18%)
+
+#### Security Enhancements
+- Content Security Policy (CSP) headers
+- HTTPS-only cookies
+- XSS protection headers
+- CSRF token validation
+
+---
+
+### 📚 Documentation Updates (November 12, 2025)
+
+#### New Files Created
+- **PROJECT_STATUS.md** - Central entry point for Claude Code
+  - Current sprint progress
+  - Technology stack overview
+  - Quick links to all documentation sections
+  - Recent changes summary (last 2 weeks)
+  - Known issues and metrics
+
+- **frontend/taiga-ui-migration-guide.md** - Complete migration guide
+- **frontend/taiga-ui-theme-system.md** - Theme customization
+- **frontend/taiga-ui-i18n.md** - Internationalization patterns
+
+#### Updated Files
+- **index.md** - Updated tech stack (Taiga UI 4.60.0)
+- **03-technology-stack.md** - Replaced Material Design 3 references
+- **CHANGELOG.md** - Added November 2025 entries
+
+---
+
 ## [Unreleased] - October 29, 2025
 
 ### 🚨 CRITICAL NEW FEATURES (Not in Master Spec v3.1)

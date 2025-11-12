@@ -101,6 +101,7 @@ markdown_extensions:
 # Navigation Structure
 nav:
   - Home: index.md
+  - Project Status: PROJECT_STATUS.md
 
   - System Foundation:
       - Executive Summary: 01-executive-summary.md
