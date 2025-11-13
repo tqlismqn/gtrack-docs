@@ -1,3 +1,9 @@
+
+## [2.2.1] - November 13, 2025
+
+### Documentation Redeploy
+
+- Trigger redeploy after making repository private to update GitHub Pages.
 # G-Track Documentation Changelog
 
 All notable changes to the G-Track project documentation and specifications.
